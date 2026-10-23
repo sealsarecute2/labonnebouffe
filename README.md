@@ -65,7 +65,7 @@ The vocabulary comes from the *La Bonne Bouffe* classroom slides. Open **About t
 
 ## Make it comfortable
 
-The website adapts to phones, tablets, and computers, and follows your device’s light or dark appearance. You can use the on-screen controls or keyboard shortcuts:
+The website adapts to phones, tablets, and computers, and starts with your device’s light or dark appearance. Use the sun or moon button in the header to switch modes; your choice is saved. To follow your device again, choose **Settings → Appearance → Use device setting**. You can use the on-screen controls or keyboard shortcuts:
 
 | Action | Key |
 | --- | --- |
@@ -83,3 +83,4 @@ No account is needed. Your progress, saved words, settings, and current round ar
 Progress does not sync between browsers or devices. Clearing browser data or using private browsing may remove it. If browser storage is unavailable, you can still study during the current visit.
 
 To start fresh, open **Settings → Reset study data**.
+

@@ -6,7 +6,7 @@
   const $=s=>document.querySelector(s);
   const html=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const KEY='bonne-bouffe.v1';
-  const defaults={version:1,mode:'flashcards',category:'all',direction:'mixed',length:10,strict:false,progress:{},bookmarks:[],session:null};
+  const defaults={version:1,mode:'flashcards',category:'all',direction:'mixed',length:10,strict:false,theme:'system',progress:{},bookmarks:[],session:null};
   let storageAvailable=true, toastTimer, inputTimer;
   let state={...defaults};
   try {
@@ -18,6 +18,7 @@
       state.direction=['mixed','fr-en','en-fr'].includes(saved.direction)?saved.direction:'mixed';
       state.length=[0,10,20].includes(saved.length)?saved.length:10;
       state.strict=!!saved.strict;
+      state.theme=['system','light','dark'].includes(saved.theme)?saved.theme:'system';
       state.bookmarks=Array.isArray(saved.bookmarks)?saved.bookmarks.filter(id=>byId.has(id)):[];
       state.progress={};
       for(const [id,p] of Object.entries(saved.progress||{})){
@@ -25,6 +26,24 @@
       }
     }
   } catch {storageAvailable=false;}
+  const deviceTheme=typeof window.matchMedia==='function'?window.matchMedia('(prefers-color-scheme: dark)'):null;
+  function currentTheme(){return state.theme==='system'?(deviceTheme?.matches?'dark':'light'):state.theme;}
+  function applyTheme(){
+    const dark=currentTheme()==='dark';
+    document.documentElement.dataset.theme=state.theme;
+    const button=$('#theme-toggle');
+    if(button){
+      button.setAttribute('aria-pressed',String(dark));
+      button.title=dark?'Switch to light mode':'Switch to dark mode';
+      button.innerHTML=dark?'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.1A8.6 8.6 0 0 1 10.9 3.5a8.6 8.6 0 1 0 9.6 9.6Z"/></svg>';
+    }
+    const meta=$('meta[name="theme-color"]');
+    if(meta)meta.setAttribute('content',dark?'#151517':'#f5f5f7');
+    const setting=$('#settings-theme');
+    if(setting)setting.value=state.theme;
+  }
+  function setTheme(theme){state.theme=['system','light','dark'].includes(theme)?theme:'system';applyTheme();save();}
+  deviceTheme?.addEventListener?.('change',()=>{if(state.theme==='system')applyTheme();});
   function save(){
     try{localStorage.setItem(KEY,JSON.stringify(state));storageAvailable=true;}catch{storageAvailable=false;}
     const caption=$('#save-caption');
@@ -84,6 +103,7 @@
     return `<div class="results"><div class="result-icon" aria-hidden="true">✓</div><p class="language-label">ROUND COMPLETE</p><h2>${missed.length?'A little more familiar.':'Nicely remembered.'}</h2><p>${state.mode==='flashcards'?`You recalled ${correct} of ${s.questions.length} words.`:`You answered ${correct} of ${s.questions.length} correctly.`}${assisted?` ${assisted} with a hint.`:''}</p><div class="result-stats"><div><strong>${percentage}%</strong><span>${state.mode==='flashcards'?'Recalled':'Accuracy'}</span></div><div><strong>${s.questions.length}</strong><span>Words practised</span></div><div><strong>${missed.length}</strong><span>To review</span></div></div><div class="result-actions">${missed.length?'<button class="button primary" data-action="retry-missed">Review these words <span aria-hidden="true">↻</span></button>':''}<button class="button ${missed.length?'secondary':'primary'}" data-action="new-round">Another round <span aria-hidden="true">→</span></button></div>${missed.length?`<div class="missed-preview"><p>TAKE ANOTHER LOOK</p>${missed.slice(0,6).map(w=>`<div class="missed-item"><span lang="fr">${html(w.fr)}</span><span lang="en">${html(w.en)}</span></div>`).join('')}${missed.length>6?`<p style="letter-spacing:0;margin-top:8px">And ${missed.length-6} more in your review round.</p>`:''}</div>`:''}</div>`;
   }
   function render(){
+    applyTheme();
     syncControls();
     const s=state.session,q=current();
     $('#study').innerHTML=!s.questions.length?empty():!q?results():state.mode==='flashcards'?flashcard(q,byId.get(q.id)):state.mode==='quiz'?quiz(q,byId.get(q.id)):typing(q,byId.get(q.id));
@@ -157,9 +177,10 @@
   function showSource(){
     info('From the classroom.',`<p>This deck comes from <strong>Vocabulaire – La Bonne Bouffe</strong>, your 21-slide PDF. It includes every listed vocabulary item: <strong>130 unique terms</strong> across 11 study topics. Adjectives and table vocabulary share slide 21.</p><p>French articles, singular/plural forms, and masculine/feminine forms are shown where useful. Typing accepts the alternatives listed in the deck, with optional articles. Accents are optional unless you turn on exact accents.</p><h3>A few useful clarifications.</h3><p>The classroom wording is kept where possible. A handful of typos are corrected and ambiguous translations are explained below and on the relevant cards.</p><div class="source-notes">${words.filter(w=>w.note).map(w=>`<div class="source-note"><strong>${html(w.en)} <span style="color:var(--secondary);font-weight:400">· slide ${w.page}</span></strong><p>${html(w.note)}</p></div>`).join('')}</div><h3>Reference checks</h3><p><a href="https://www.larousse.fr/dictionnaires/anglais-francais/pepper/601207" target="_blank" rel="noopener noreferrer">Larousse: pepper</a> · <a href="https://www.larousse.fr/dictionnaires/anglais-francais/healthy/585835" target="_blank" rel="noopener noreferrer">Larousse: healthy</a> · <a href="https://www.larousse.fr/dictionnaires/francais-anglais/d%C3%A9tester/24699" target="_blank" rel="noopener noreferrer">Larousse: détester</a></p><p>Le fromage en grains was supplied for the incomplete Cheese curd entry. Meal names and several food terms vary by region; this is a study companion to your class deck.</p>`);
   }
-  function showSettings(){info('Make yourself at home.',`<p>Everything works in your browser. No sign-in, timers, or tracking. Your round, saved words, and learning progress stay on this device.</p><div class="settings-row"><div><label for="settings-strict">Exact French accents</label><small>Require é, è, ç, and other accents when typing.</small></div><input id="settings-strict" type="checkbox" ${state.strict?'checked':''}></div><div class="settings-row"><div><label>Appearance</label><small>Follows your device’s light or dark setting.</small></div><span>Automatic</span></div><h3>Start fresh</h3><p>Clear all progress, saved words, and the current round on this browser.</p><button class="danger-button" data-action="confirm-reset">Reset study data…</button><div id="reset-area"></div>`);}
+  function showSettings(){info('Make yourself at home.',`<p>Everything works in your browser. No sign-in, timers, or tracking. Your round, saved words, and learning progress stay on this device.</p><div class="settings-row"><div><label for="settings-strict">Exact French accents</label><small>Require é, è, ç, and other accents when typing.</small></div><input id="settings-strict" type="checkbox" ${state.strict?'checked':''}></div><div class="settings-row"><div><label for="settings-theme">Appearance</label><small>Choose a theme or follow your device.</small></div><select id="settings-theme"><option value="system" ${state.theme==='system'?'selected':''}>Use device setting</option><option value="light" ${state.theme==='light'?'selected':''}>Light</option><option value="dark" ${state.theme==='dark'?'selected':''}>Dark</option></select></div><h3>Start fresh</h3><p>Clear all progress, saved words, and the current round on this browser.</p><button class="danger-button" data-action="confirm-reset">Reset study data…</button><div id="reset-area"></div>`);}
   function showShortcuts(){info('Keep your hands on the keys.',`<table class="shortcut-table"><caption>Flashcards</caption><tr><td>Turn the card</td><td><kbd>space</kbd></td></tr><tr><td>Still learning (after reveal)</td><td><kbd>1</kbd></td></tr><tr><td>Got it (after reveal)</td><td><kbd>2</kbd></td></tr></table><table class="shortcut-table" style="margin-top:24px"><caption>Multiple choice & typing</caption><tr><td>Choose a quiz answer</td><td><kbd>1</kbd> – <kbd>4</kbd></td></tr><tr><td>Check typed answer / continue</td><td><kbd>return</kbd></td></tr><tr><td>Close a dialog</td><td><kbd>esc</kbd></td></tr></table><p style="margin-top:22px">Use Tab to move between controls. On a phone or tablet, tap the card or use the on-screen buttons.</p>`);}
   const actions={
+    'toggle-theme':()=>setTheme(currentTheme()==='dark'?'light':'dark'),
     flip,next,check,hint,skip,vocabulary:openVocabulary,progress:showProgress,source:showSource,settings:showSettings,shortcuts:showShortcuts,
     'new-round':()=>{startRound();toast('A fresh round is ready.');},
     'flash-review':()=>{if(state.mode==='flashcards'&&state.session.revealed){record(false);next();}},
@@ -192,6 +213,7 @@
   });
   document.addEventListener('change',event=>{
     const id=event.target.id;
+    if(id==='settings-theme')setTheme(event.target.value);
     if(['category','direction','length'].includes(id)){state[id]=id==='length'?Number(event.target.value):event.target.value;startRound();}
     if(['exact-accents','settings-strict'].includes(id)){state.strict=event.target.checked;save();if(id==='exact-accents'){state.session.typed=$('#typed-answer').value;render();$('#typed-answer').focus({preventScroll:true});}else if(state.mode==='typing')render();}
     if(['library-category','starred-only'].includes(id))renderVocabulary();
@@ -215,3 +237,4 @@
   $('#library-category').innerHTML='<option value="all">All topics</option>'+options;
   if(!validSession(state.session))startRound();else render();
 })();
+
