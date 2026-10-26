@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parent.parent
 shell = (ROOT / "src/shell.html").read_text()
 styles = "\n".join((ROOT / name).read_text() for name in ("styles.css", "game.css", "plate-shop.css"))
 scripts = "\n;\n".join((ROOT / name).read_text() for name in (
-    "data.js", "engine.js", "game-engine.js", "plates.js", "app.js", "plate-shop.js", "game.js"
+    "data.js", "engine.js", "game-engine.js", "plates.js", "case-audio.js", "app.js", "plate-shop.js", "game.js"
 ))
 result = shell.replace("<!-- BOUFFE_STYLES -->", "<style>\n" + styles + "\n</style>")
 result = result.replace("<!-- BOUFFE_SCRIPTS -->", "<script>\n" + scripts + "\n</script>")

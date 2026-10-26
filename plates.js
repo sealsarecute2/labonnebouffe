@@ -32,7 +32,8 @@
     { id:'orbital', name:'Orbital', rarity:3, finish:'orbital', colors:['#252e37','#f0f0e6','#f58231'] },
     { id:'neon-beast', name:'Neon Beast', rarity:3, finish:'beast', colors:['#16354e','#7e4ab9','#f687be'] },
     { id:'doppler', name:'Doppler', rarity:4, finish:'doppler', colors:['#15162d','#5238b2','#e761a3'] },
-    { id:'tiger-fang', name:'Tiger Fang', rarity:4, finish:'tiger', colors:['#201c1c','#efa52e','#ffdb71'] }
+    { id:'tiger-fang', name:'Tiger Fang', rarity:4, finish:'tiger', colors:['#201c1c','#efa52e','#ffdb71'] },
+    { id:'blue-gem', name:'Blue Gem', rarity:3, finish:'blue-gem', colors:['#704825','#b89b59','#58c6f4'] }
   ];
   const cases = [
     { id:'service', name:'Service Case', subtitle:'The everyday collection.', price:12, color:'#83b5e6', weights:[65,25,8,1.8,.2] },
@@ -47,10 +48,11 @@
     if (root.crypto?.getRandomValues) { const a=new Uint32Array(1);root.crypto.getRandomValues(a);return a[0]/4294967296; }
     return Math.random();
   }
-  function fresh(tips=0) { return { balance:amount(tips), inventory:[], equipped:null, opened:0, soldTips:0, soldCount:0 }; }
+  function fresh(tips=0) { return { balance:amount(tips), inventory:[], equipped:null, opened:0, soldTips:0, soldCount:0, soundMuted:false }; }
   function restore(data,lifetime=0) {
     if (!data || typeof data!=='object') return fresh(lifetime);
     const state=fresh();state.soldTips=amount(data.soldTips);state.soldCount=amount(data.soldCount);
+    state.soundMuted=data.soundMuted===true;
     state.balance=Math.min(amount(data.balance),amount(lifetime)+state.soldTips);
     const seen=new Set();
     if (Array.isArray(data.inventory)) for (const item of data.inventory) {
@@ -91,7 +93,7 @@
   function equip(state,uid) { if(uid!==null&&!state.inventory.some(x=>x.uid===uid))return false;state.equipped=uid;return true; }
   function skin(item) { return skinById.get(item?.skin)||null; }
   function rarity(item) { const s=skin(item);return s?rarities[s.rarity]:null; }
-  function salePrice(item){const r=rarity(item);return r&&Number.isFinite(item.float)?Math.round(r.value*(1-clamp(item.float))):0;}
+  function salePrice(item){const r=rarity(item);return r&&Number.isFinite(item.float)?Math.max(1,Math.round(r.value*(1-clamp(item.float)))):0;}
   function sell(state,uid){
     const index=state.inventory.findIndex(item=>item.uid===uid);
     if(index<0)return {ok:false,error:'That plate is no longer in your inventory.'};
@@ -100,14 +102,46 @@
     state.balance+=price;state.soldTips=amount(state.soldTips)+price;state.soldCount=amount(state.soldCount)+1;
     return {ok:true,item,price};
   }
-  // Uniform floats have mean 0.5; rounding integer rarity values preserves that mean.
-  function expectedResale(caseId){const box=caseById.get(caseId);return box?box.weights.reduce((n,p,i)=>n+p/100*rarities[i].value/2,0):0;}
+  // The $1 floor adds the probability mass that previously rounded to zero: 0.5/value.
+  function expectedResale(caseId){const box=caseById.get(caseId);return box?box.weights.reduce((n,p,i)=>{const value=rarities[i].value;return n+p/100*(value/2+.5/value);},0):0;}
   function seeded(seed) { let n=seed>>>0;return ()=>{n=(1664525*n+1013904223)>>>0;return n/4294967296;}; }
+  const gemCache=new Map();
+  function blueGem(seed){
+    seed=Math.max(1,Math.min(1000,amount(seed)||1));
+    if(gemCache.has(seed))return gemCache.get(seed);
+    const rng=seeded(seed*7919+17),quality=rng(),phase=rng()*Math.PI*2;
+    const amplitude=4+rng()*10,frequency=1.7+rng()*1.6,secondary=2+rng()*4;
+    const special={661:.99,387:.975,555:.96};
+    const target=special[seed]??(quality>.97?.94+(quality-.97)/.03*.05:.12+quality*.78);
+    const wave=y=>amplitude*Math.sin(y/90*frequency*Math.PI+phase)+secondary*Math.cos(y/90*5+phase);
+    const coverage=offset=>{
+      let blue=0,total=0;
+      for(let row=0;row<120;row++){const y=-90+(row+.5)*180/120,span=Math.sqrt(8100-y*y);total+=span*2;blue+=Math.max(0,Math.min(span*2,offset+wave(y)+span));}
+      return blue/total;
+    };
+    let low=-125,high=125;
+    for(let n=0;n<24;n++){const mid=(low+high)/2;if(coverage(mid)<target)low=mid;else high=mid;}
+    const offset=(low+high)/2,points=[];
+    for(let y=-110;y<=110;y+=4)points.push(`${(110+offset+wave(y)).toFixed(2)} ${(110+y).toFixed(2)}`);
+    const boundary=`M${points.join('L')}`,path=`M-20 0L${points.join('L')}L-20 220Z`;
+    const result={seed,coverage:Math.round(coverage(offset)*100),path,boundary};
+    gemCache.set(seed,result);return result;
+  }
+  function patternInfo(item){
+    if(skin(item)?.finish!=='blue-gem')return null;
+    const gem=blueGem(item.seed);
+    return {seed:gem.seed,coverage:gem.coverage,label:gem.coverage>=95?'Gem pattern':gem.coverage>=80?'Blue dominant':gem.coverage>=50?'Mixed pattern':'Bronze dominant'};
+  }
   function art(item,prefix='plate') {
     const s=skin(item);if(!s)return '';
     const id=String(prefix).replace(/[^a-zA-Z0-9-]/g,''), rng=seeded(item.seed||1), [a,b,c]=s.colors;
     const v=clamp(item.float||0), rotation=(item.seed||1)%360, gold=s.rarity===4;
     let pattern='';
+    if(s.finish==='blue-gem'){
+      const gem=blueGem(item.seed);
+      pattern+=`<defs><linearGradient id="${id}-blue-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#123776"/><stop offset=".25" stop-color="#136cbb"/><stop offset=".5" stop-color="#70d2f6"/><stop offset=".68" stop-color="#258fc9"/><stop offset="1" stop-color="#283f90"/></linearGradient></defs><path d="${gem.path}" fill="url(#${id}-blue-metal)" stroke="none"/><path d="${gem.boundary}" fill="none" stroke="#8766bb" stroke-width="3" stroke-opacity=".6"/>`;
+      for(let n=0;n<18;n++){const y=5+rng()*210;pattern+=`<path d="M-10 ${y}q100 ${rng()*20-10} 240-18" fill="none" stroke="${n%3?'#b8eaff':'#fbdb97'}" stroke-width="${.3+rng()*.8}" stroke-opacity=".2"/>`;}
+    }
     if(s.finish==='camo')for(let n=0;n<38;n++){const x=rng()*220,y=rng()*220;pattern+=`<path d="M${x} ${y}h${10+rng()*35}v16h-10v17h-23v-14h-14v-11Z" fill="${n%3?b:c}" opacity="${.3+rng()*.45}"/>`;}
     if(s.finish==='mesh')for(let n=-110;n<330;n+=16)pattern+=`<path d="M${n} 0l220 220M${n} 0l-220 220" stroke="${c}" stroke-width="1.3" opacity=".7"/>`;
     if(s.finish==='stream'){
@@ -170,6 +204,6 @@
     }
     return `<svg class="skin-art skin-tier-${s.rarity}" viewBox="0 0 220 220" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><radialGradient id="${id}-base" cx="35%" cy="25%"><stop stop-color="${b}"/><stop offset="1" stop-color="${a}"/></radialGradient><radialGradient id="${id}-light"><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset=".85" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient><linearGradient id="${id}-rim" x2="1" y2="1"><stop stop-color="${gold?'#fff0b7':c}"/><stop offset=".35" stop-color="${gold?'#ad701c':a}"/><stop offset=".68" stop-color="${gold?'#fbd47e':c}"/><stop offset="1" stop-color="${gold?'#86541a':b}"/></linearGradient><linearGradient id="${id}-rainbow" x2="1" y2="1"><stop stop-color="#4cced0"/><stop offset=".35" stop-color="#7282ed"/><stop offset=".65" stop-color="#ef79bc"/><stop offset="1" stop-color="#ffdb85"/></linearGradient><clipPath id="${id}-clip"><circle cx="110" cy="110" r="90"/></clipPath><filter id="${id}-blur"><feGaussianBlur stdDeviation="12"/></filter></defs><circle cx="110" cy="112" r="104" fill="#000" opacity=".22"/><circle cx="110" cy="108" r="103" fill="url(#${id}-rim)"/><circle cx="110" cy="108" r="97" fill="url(#${id}-base)"/><g clip-path="url(#${id}-clip)" transform="rotate(${rotation} 110 110)" fill="none" stroke="${c}" stroke-width=".7" stroke-opacity=".55">${pattern}</g><circle cx="110" cy="110" r="81" fill="none" stroke="${c}" stroke-opacity=".6" stroke-width="1"/><g clip-path="url(#${id}-clip)">${scratches}</g><circle cx="110" cy="108" r="97" fill="url(#${id}-light)"/><circle cx="110" cy="108" r="100" fill="none" stroke="#fff" stroke-opacity="${.32-v*.2}" stroke-width=".8"/>${gold?'<path d="m110 8 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="#fff4c8"/>':''}</svg>`;
   }
-  const api={rarities,skins,cases,fresh,restore,wear,draw,open,equipped,equip,skin,rarity,salePrice,sell,expectedResale,art,random};
+  const api={rarities,skins,cases,fresh,restore,wear,draw,open,equipped,equip,skin,rarity,salePrice,sell,expectedResale,patternInfo,art,random};
   root.BOUFFE_PLATES=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

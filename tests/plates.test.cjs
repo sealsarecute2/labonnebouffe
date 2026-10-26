@@ -5,7 +5,7 @@ const rolls=(...values)=>{let i=0;return ()=>values[i++%values.length];};
 test('case odds add to 100 and every tier has a finish',()=>{
   for(const c of P.cases){assert.equal(c.weights.reduce((a,b)=>a+b,0),100);assert.ok(c.price>0);}
   for(let n=0;n<5;n++)assert.ok(P.skins.some(s=>s.rarity===n));
-  assert.equal(new Set(P.skins.map(s=>s.id)).size,24);
+  assert.equal(new Set(P.skins.map(s=>s.id)).size,25);
 });
 test('existing tips migrate once and a spent balance never refills on reload',()=>{
   const state=P.restore(undefined,50);assert.equal(state.balance,50);
@@ -65,7 +65,7 @@ test('every skin draws a deterministic plate and wear changes its appearance',()
 });
 test('resale rewards a lower float using rounded rarity value times remaining condition',()=>{
   for(const s of P.skins)for(const value of [0,.001,.036,.15,.381,.729,1]){
-    assert.equal(P.salePrice({skin:s.id,float:value}),Math.round(P.rarities[s.rarity].value*(1-value)));
+    assert.equal(P.salePrice({skin:s.id,float:value}),Math.max(1,Math.round(P.rarities[s.rarity].value*(1-value))));
   }
 });
 test('selling grants tips once, removes the instance and restores the original if equipped',()=>{
@@ -79,10 +79,33 @@ test('selling grants tips once, removes the instance and restores the original i
   const before=JSON.stringify(reloaded);assert.equal(P.sell(reloaded,item.uid).ok,false);
   assert.equal(JSON.stringify(reloaded),before);assert.equal(P.sell(reloaded,'classic').ok,false);
 });
-test('selling another item preserves the equipped plate, and a zero-value sale is valid',()=>{
+test('selling a fully worn item pays the one-tip minimum and preserves another equipped plate',()=>{
   const s=P.fresh(24),a=P.open(s,'service',rolls(.1,.1,1,.1),1).item,b=P.open(s,'service',rolls(.1,.1,.9,.9),2).item;
   P.equip(s,b.uid);const r=P.sell(s,a.uid);
-  assert.equal(r.ok,true);assert.equal(r.price,0);assert.equal(s.equipped,b.uid);assert.equal(s.inventory.length,1);
+  assert.equal(r.ok,true);assert.equal(r.price,1);assert.equal(s.balance,1);assert.equal(s.equipped,b.uid);assert.equal(s.inventory.length,1);
+});
+test('Blue Gem is Covert and seed-dependent coverage is stable independently of float',()=>{
+  assert.equal(P.rarity({skin:'blue-gem'}).rank,3);
+  const a={skin:'blue-gem',seed:661,float:.01},b={...a,float:.99};
+  assert.equal(P.patternInfo(a).coverage,99);
+  assert.deepEqual(P.patternInfo(a),P.patternInfo(b));
+  assert.notEqual(P.art(a,'gem'),P.art(b,'gem'));
+  const coverage=[];
+  for(let seed=1;seed<=1000;seed++)coverage.push(P.patternInfo({...a,seed}).coverage);
+  assert.ok(Math.min(...coverage)<20);assert.ok(Math.max(...coverage)>=99);
+  assert.ok(new Set(coverage).size>65);
+  assert.equal(P.patternInfo({skin:'blueprint',seed:661}),null);
+  const state=P.fresh(100);state.inventory=[{...a,uid:'gem',case:'service',acquired:1}];state.equipped='gem';state.soundMuted=true;
+  const restored=P.restore(state,100);
+  assert.equal(restored.soundMuted,true);assert.equal(restored.inventory[0].seed,661);assert.equal(restored.equipped,'gem');
+});
+test('the minimum resale floor is included in the case expected returns',()=>{
+  for(const box of P.cases){
+    const expected=box.weights.reduce((sum,chance,i)=>{const value=P.rarities[i].value;return sum+chance/100*(value/2+1/(2*value));},0);
+    assert.ok(Math.abs(P.expectedResale(box.id)-expected)<1e-10);
+    assert.ok(expected<box.price);
+  }
+  for(const s of P.skins)for(const f of [0,.99,.99999,1])assert.ok(P.salePrice({skin:s.id,float:f})>=1);
 });
 test('premium high-rarity chances are reduced and every case has a net resale loss',()=>{
   const old=[[65,25,8,1.8,.2],[40,35,19,5,1],[15,38,32,12,3]];
