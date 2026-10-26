@@ -33,7 +33,12 @@
     { id:'neon-beast', name:'Neon Beast', rarity:3, finish:'beast', colors:['#16354e','#7e4ab9','#f687be'] },
     { id:'doppler', name:'Doppler', rarity:4, finish:'doppler', colors:['#15162d','#5238b2','#e761a3'] },
     { id:'tiger-fang', name:'Tiger Fang', rarity:4, finish:'tiger', colors:['#201c1c','#efa52e','#ffdb71'] },
-    { id:'blue-gem', name:'Case Hardened', rarity:3, finish:'blue-gem', colors:['#704825','#b89b59','#58c6f4'] }
+    { id:'blue-gem', name:'Case Hardened', rarity:3, finish:'blue-gem', colors:['#704825','#b89b59','#58c6f4'] },
+    { id:'sandstone', name:'Sandstone', rarity:0, finish:'sandstone', colors:['#87765b','#b9a582','#d6c7a8'] },
+    { id:'olive-drab', name:'Olive Drab', rarity:0, finish:'matte', colors:['#394238','#68735b','#89917b'] },
+    { id:'brushed-steel', name:'Brushed Steel', rarity:0, finish:'brushed', colors:['#46515a','#8d999f','#c5cdd0'] },
+    { id:'navy-stripe', name:'Navy Stripe', rarity:0, finish:'stripe', colors:['#1c354c','#42617a','#b6c5ca'] },
+    { id:'workshop-check', name:'Workshop Check', rarity:0, finish:'checker', colors:['#3e4444','#687171','#9aa09a'] }
   ];
   const cases = [
     { id:'service', name:'Service Case', subtitle:'The everyday collection.', price:12, color:'#83b5e6', weights:[65,25,8,1.8,.2] },
@@ -137,6 +142,19 @@
     const id=String(prefix).replace(/[^a-zA-Z0-9-]/g,''), rng=seeded(item.seed||1), [a,b,c]=s.colors;
     const v=clamp(item.float||0), rotation=(item.seed||1)%360, gold=s.rarity===4;
     let pattern='';
+    if(s.finish==='sandstone')for(let n=0;n<240;n++)pattern+=`<circle cx="${rng()*220}" cy="${rng()*220}" r="${.25+rng()*1.5}" fill="${n%3?c:a}" opacity="${.12+rng()*.35}"/>`;
+    if(s.finish==='matte'){
+      pattern+=`<circle cx="110" cy="110" r="73" fill="${b}" opacity=".3"/><circle cx="110" cy="110" r="62" fill="none" stroke="${c}" stroke-width="1" opacity=".2"/>`;
+      for(let n=0;n<70;n++)pattern+=`<circle cx="${rng()*220}" cy="${rng()*220}" r="${.4+rng()*.8}" fill="${c}" opacity=".12"/>`;
+    }
+    if(s.finish==='brushed')for(let n=0;n<125;n++){
+      const y=rng()*220;pattern+=`<path d="M-10 ${y}h240" stroke="${n%3?c:a}" stroke-width="${.2+rng()*.6}" opacity="${.1+rng()*.3}"/>`;
+    }
+    if(s.finish==='stripe'){
+      pattern+=`<path d="M-10 63h240v13H-10Zm0 27h240v38H-10Zm0 54h240v13H-10Z" fill="${c}" opacity=".65"/>`;
+      pattern+=`<path d="M-10 108h240" stroke="${a}" stroke-width="2"/>`;
+    }
+    if(s.finish==='checker')for(let y=-10;y<240;y+=22)for(let x=-10;x<240;x+=22)if(((x+10)/22+(y+10)/22)%2===0)pattern+=`<rect x="${x}" y="${y}" width="22" height="22" fill="${c}" opacity=".28"/>`;
     if(s.finish==='blue-gem'){
       const gem=blueGem(item.seed);
       pattern+=`<defs><linearGradient id="${id}-blue-metal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#123776"/><stop offset=".25" stop-color="#136cbb"/><stop offset=".5" stop-color="#70d2f6"/><stop offset=".68" stop-color="#258fc9"/><stop offset="1" stop-color="#283f90"/></linearGradient></defs><path d="${gem.path}" fill="url(#${id}-blue-metal)" stroke="none"/><path d="${gem.boundary}" fill="none" stroke="#8766bb" stroke-width="3" stroke-opacity=".6"/>`;

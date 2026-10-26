@@ -100,3 +100,9 @@ No account is needed. Your progress, saved words, settings, and current round ar
 Progress does not sync between browsers or devices. Clearing browser data or using private browsing may remove it. If browser storage is unavailable, you can still study during the current visit.
 
 To start fresh, open **Settings → Reset study data**. This also resets your café, tips, and game records.
+
+## Plate-shop audio
+
+The secret shop uses Valve’s original CS2 case unlock, crate-scroll click, and rarity reveal samples, encoded at 160 kbps MP3. The source is [Source2Sounds/cs2](https://github.com/Source2Sounds/cs2/tree/3eb039f9b98564104b7cc2d5ee50888f38752caf/sounds/ui), pinned in `assets/audio/manifest.json`. The game’s [Panorama case flow](https://github.com/SteamTracking/GameTracking-CS2/blob/master/game/csgo/pak01_dir/panorama/scripts/popups/popup_capability_decodable.js) supplies the two-second intro and six-second reel timing. Clicks follow the cards crossing the pointer; the reveal sound starts when the reel stops.
+
+Run `python3 scripts/build.py` after changing the source or sound assets. The build embeds the samples in `index.html`, so the published page also plays offline without external audio requests.

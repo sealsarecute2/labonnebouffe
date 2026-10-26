@@ -1,12 +1,13 @@
 /* The back room. Its entrance is the plate in the café illustration. */
 (function(root){
   'use strict';
-  const S=BOUFFE_PLATES;
+  const S=BOUFFE_PLATES, T=BOUFFE_CASE_AUDIO.timeline;
+  const REEL_START=5, REEL_STOP=47, REEL_COUNT=56;
   const audio=BOUFFE_CASE_AUDIO.create();
   const $=q=>document.querySelector(q);
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const arrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5-7 7 7 7M2 12h19"/></svg>';
-  let context=null,active=false,tab='cases',selectedCase='service',stage='browse',prize=null,inspected=null,sort='newest',timer=null,generation=0,artSerial=0,pendingSale=null,lastSale='',spinFrame=0,crackTimer=null;
+  let context=null,active=false,tab='cases',selectedCase='service',stage='browse',prize=null,inspected=null,sort='newest',timer=null,generation=0,artSerial=0,pendingSale=null,lastSale='',spinFrame=0;
   const box=()=>S.cases.find(c=>c.id===selectedCase)||S.cases[0];
   const money=n=>n.toLocaleString('en-CA');
   const art=item=>S.art(item,`shop-${++artSerial}`);
@@ -47,13 +48,13 @@
     return `<div class="shop-opening shop-cracking"><p class="shop-kicker">${esc(c.name.toUpperCase())}</p><h3>Something good inside.</h3><div class="case-crack-scene" style="--case-color:${c.color}" aria-hidden="true"><div class="crack-halo"></div><div class="crack-briefcase"><div class="crack-base"><div class="crack-foam"><span>${art(sample(S.skins.find(s=>s.rarity===(c.id==='reserve'?4:c.id==='after-hours'?2:0))))}</span></div><b>LA BONNE BOUFFE</b></div><div class="crack-seam"></div><div class="crack-lid"><div class="crack-lid-outside"><i class="crack-handle"></i><span class="crack-brand">LBB<span>PLATE COLLECTION</span></span><i class="crack-latch latch-left"></i><i class="crack-latch latch-right"></i></div><div class="crack-lid-inside"><span>THE BACK ROOM</span></div></div></div><div class="crack-sparks"><i></i><i></i><i></i><i></i><i></i></div></div><p class="shop-opening-caption">A little something for your next service.</p><button class="shop-secondary" data-shop-action="reveal">Skip reveal</button></div>`;
   }
   function opening(){
-    const c=box(),items=Array.from({length:32},()=>S.draw(c.id));items[25]=prize;
+    const c=box(),items=Array.from({length:REEL_COUNT},()=>S.draw(c.id));items[REEL_STOP]=prize;
     return `<div class="shop-opening"><p class="shop-kicker">${esc(c.name.toUpperCase())}</p><h3>Unboxing your plate.</h3><div class="case-reel"><i class="reel-pointer top"></i><div class="reel-window"><div class="reel-track">${items.map(item=>plateCard(item,{reel:true})).join('')}</div></div><i class="reel-pointer bottom"></i></div><p class="shop-opening-caption">Every finish has its own float and pattern.</p><button class="shop-secondary" data-shop-action="reveal">Skip reveal</button></div>`;
   }
   function result(){const r=S.rarity(prize),skin=S.skin(prize);return `<div class="shop-result" style="--rarity:${r.color}"><p class="shop-kicker">ADDED TO YOUR INVENTORY</p><div class="shop-result-art">${art(prize)}</div><span class="shop-rarity">${esc(r.name.toUpperCase())}</span><h3>${esc(skin.name)}</h3><p class="shop-condition">${S.wear(prize.float).name}</p>${floatMeter(prize)}<div class="shop-result-actions"><button class="shop-primary" data-shop-action="equip-result">Equip plate</button><button class="shop-secondary" data-shop-action="keep">View in inventory</button></div><div class="shop-result-sale">${saleValue(prize)}${saleControl(prize)}</div><button class="shop-text" data-shop-action="cases">Back to cases</button></div>`;}
   function render(){
     if(!active)return;
-    context.host.innerHTML=`<section class="plate-shop" aria-label="Plate collection">${header()}${lastSale?`<p class="shop-sale-notice" role="status">${esc(lastSale)}</p>`:''}<div class="shop-body">${stage==='cracking'?cracking():stage==='opening'?opening():stage==='result'?result():tab==='cases'?browse():inventory()}</div><footer class="shop-footer"><span>YOUR KITCHEN. YOUR COLLECTION.</span><span>Plates change the look. Your study progress stays the same.</span></footer></section>`;
+    context.host.innerHTML=`<section class="plate-shop" aria-label="Plate collection" style="--case-intro-duration:${T.intro}ms;--case-reel-duration:${T.reel}ms">${header()}${lastSale?`<p class="shop-sale-notice" role="status">${esc(lastSale)}</p>`:''}<div class="shop-body">${stage==='cracking'?cracking():stage==='opening'?opening():stage==='result'?result():tab==='cases'?browse():inventory()}</div><footer class="shop-footer"><span>YOUR KITCHEN. YOUR COLLECTION.</span><span>Plates change the look. Your study progress stays the same.</span></footer></section>`;
   }
   function reveal(){
     if(!active||!['cracking','opening'].includes(stage))return;
@@ -67,36 +68,45 @@
     if(!transaction.ok){announce(transaction.error);return;}
     audio.setMuted(context.state.soundMuted);
     prize=transaction.item;save();stage='cracking';pendingSale=null;lastSale='';const token=++generation;render();
-    const reduce=root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if(reduce){reveal();return;}
-    audio.open();
-    crackTimer=setTimeout(()=>{if(active&&token===generation&&stage==='cracking'&&!document.hidden)audio.crack();},390);
-    timer=setTimeout(()=>beginReel(token),1450);
+    audio.unlock();
+    const begin=()=>{
+      if(!active||token!==generation||stage!=='cracking')return;
+      if(root.matchMedia?.('(prefers-reduced-motion: reduce)').matches){reveal();return;}
+      requestAnimationFrame(()=>{
+        if(!active||token!==generation||stage!=='cracking')return;
+        $('.case-crack-scene')?.classList.add('is-playing');audio.open();
+        timer=setTimeout(()=>beginReel(token),T.intro);
+      });
+    };
+    const preparation=audio.prepare();
+    if(preparation?.then)preparation.then(begin,begin);else begin();
     announce('Opening case. Your plate has been saved to your inventory.');
   }
   function beginReel(token){
     if(!active||token!==generation||stage!=='cracking')return;
     stage='opening';render();
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const rail=$('.reel-track'),viewport=$('.reel-window'),cell=$('.reel-item');
+    if(!rail||!viewport||!cell)return;
+    const cellWidth=cell.getBoundingClientRect().width,step=cellWidth+10;
+    const offset=index=>viewport.getBoundingClientRect().width/2-(index*step+cellWidth/2);
+    rail.style.transition='none';rail.style.transform=`translateX(${offset(REEL_START)}px)`;
+    timer=setTimeout(()=>requestAnimationFrame(()=>{
       if(!active||token!==generation||stage!=='opening')return;
-      const rail=$('.reel-track'),window=$('.reel-window'),cell=$('.reel-item');
-      if(!rail||!window||!cell)return;
-      const step=cell.getBoundingClientRect().width+10;
-      const target=25*step+cell.getBoundingClientRect().width/2-window.getBoundingClientRect().width/2;
-      rail.style.transform=`translateX(${-target}px)`;
-      watchRoll(token,rail,window,step);
-      timer=setTimeout(()=>{if(token===generation)reveal();},4300);
-    }));
+      rail.style.transition='';rail.style.transform=`translateX(${offset(REEL_STOP)}px)`;
+      watchRoll(token,rail,viewport,step);
+      rail.addEventListener('transitionend',e=>{if(e.target===rail&&e.propertyName==='transform'&&token===generation)reveal();},{once:true});
+      timer=setTimeout(()=>{if(token===generation)reveal();},T.reel+100);
+    }),T.reelLead);
   }
-  function clearOpening(){clearTimeout(timer);clearTimeout(crackTimer);timer=null;crackTimer=null;stopRoll();audio.stop();}
+  function clearOpening(){clearTimeout(timer);timer=null;stopRoll();audio.stop();}
   function stopRoll(){cancelAnimationFrame(spinFrame);spinFrame=0;}
   function watchRoll(token,rail,viewport,step){
-    stopRoll();let previous=-1;
+    stopRoll();let previous=REEL_START;
     function frame(){
       if(!active||stage!=='opening'||token!==generation)return;
       const transform=getComputedStyle(rail).transform,offset=transform==='none'?0:new DOMMatrixReadOnly(transform).m41;
       const index=Math.floor((viewport.clientWidth/2-offset)/step);
-      if(previous>=0&&index>previous&&!document.hidden)audio.tick(Math.min(1,index/25));
+      if(previous>=0&&index>previous&&!document.hidden)audio.tick(Math.min(1,(index-REEL_START)/(REEL_STOP-REEL_START)));
       previous=index;spinFrame=requestAnimationFrame(frame);
     }
     spinFrame=requestAnimationFrame(frame);
@@ -104,7 +114,7 @@
   function dismiss(notify=true){if(!active)return;clearOpening();generation++;active=false;if(notify)context.onClose();}
   function open(options){
     dismiss(false);context=options;active=true;tab='cases';stage='browse';prize=null;inspected=context.state.equipped;pendingSale=null;lastSale='';
-    audio.setMuted(context.state.soundMuted);
+    audio.setMuted(context.state.soundMuted);audio.prepare();
     render();$('.shop-back')?.focus({preventScroll:true});announce('Plate collection opened.');
   }
   document.addEventListener('click',e=>{
@@ -127,7 +137,7 @@
     const action=b.dataset.shopAction;
     if(action==='sound'){
       context.state.soundMuted=!context.state.soundMuted;audio.setMuted(context.state.soundMuted);
-      if(!context.state.soundMuted)audio.unlock();save();$('.shop-sound-toggle').outerHTML=soundButton();return;
+      if(!context.state.soundMuted){audio.unlock();audio.prepare();}save();$('.shop-sound-toggle').outerHTML=soundButton();return;
     }
     if(action==='close')dismiss();
     if(action==='cancel-sale'){pendingSale=null;render();}

@@ -1,0 +1,14 @@
+{
+  "source": "https://github.com/Source2Sounds/cs2",
+  "commit": "3eb039f9b98564104b7cc2d5ee50888f38752caf",
+  "credit": "Counter-Strike 2 interface sound effects by Valve. Original samples encoded at 160 kbps MP3 for the web; no pitch or timing changes.",
+  "files": {
+    "open": "case_unlock_01.mp3",
+    "tick": "csgo_ui_crate_item_scroll.mp3",
+    "reveal0": "case_reveal_rare_01.mp3",
+    "reveal1": "case_reveal_mythical_01.mp3",
+    "reveal2": "case_reveal_legendary_01.mp3",
+    "reveal3": "case_reveal_ancient_01.mp3",
+    "reveal4": "case_reveal_ancient_01.mp3"
+  }
+}

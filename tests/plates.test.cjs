@@ -2,10 +2,19 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const P=require('../plates.js');
 const rolls=(...values)=>{let i=0;return ()=>values[i++%values.length];};
+test('five new basic finishes draw as Mil-Spec and keep the existing resale and case odds',()=>{
+  const additions=['sandstone','olive-drab','brushed-steel','navy-stripe','workshop-check'];
+  const pool=P.skins.filter(s=>s.rarity===0);assert.equal(pool.length,11);
+  for(const id of additions){
+    const index=pool.findIndex(s=>s.id===id);assert.ok(index>=0);
+    const item=P.draw('service',rolls(0,(index+.5)/pool.length,.02,.5));
+    assert.equal(item.skin,id);assert.equal(P.rarity(item).name,'Mil-Spec');assert.equal(P.salePrice(item),6);
+  }
+});
 test('case odds add to 100 and every tier has a finish',()=>{
   for(const c of P.cases){assert.equal(c.weights.reduce((a,b)=>a+b,0),100);assert.ok(c.price>0);}
   for(let n=0;n<5;n++)assert.ok(P.skins.some(s=>s.rarity===n));
-  assert.equal(new Set(P.skins.map(s=>s.id)).size,25);
+  assert.equal(new Set(P.skins.map(s=>s.id)).size,30);
 });
 test('existing tips migrate once and a spent balance never refills on reload',()=>{
   const state=P.restore(undefined,50);assert.equal(state.balance,50);
