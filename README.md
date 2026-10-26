@@ -1,6 +1,6 @@
 # La Bonne Bouffe
 
-Learn French food vocabulary with flashcards, multiple-choice quizzes, and typing practice. Explore **130 terms across 11 topics**, with an English interface and questions in both French and English.
+Learn French food vocabulary with flashcards, multiple-choice quizzes, and typing practice. Play **Order Up!**, a restaurant game that puts the food vocabulary to work. Explore **130 terms across 11 topics**, with an English interface and questions in both French and English.
 
 **[Start studying →](https://sealsarecute2.github.io/labonnebouffe/)**
 
@@ -13,6 +13,21 @@ Learn French food vocabulary with flashcards, multiple-choice quizzes, and typin
 | **Type the answer** | Type the translation yourself. Check your answer, or use a hint when you need one. |
 
 There’s no time limit. Work at your own pace.
+
+## Order Up! — open your own café
+
+Choose the **Order Up!** tab beside the study modes. Read each order ticket, select its ingredients, then **Serve order**. Every fourth ticket is a restock request: type the translation to label the delivery.
+
+- **2-minute rush:** serve as many orders as you can before the shift ends. Table patience runs down while you work.
+- **No pressure:** play without a clock or patience limit, and finish whenever you like.
+- Choose French orders with English ingredients, or switch to English orders with French ingredients. Restocking practises the other direction.
+- Clean orders build a streak and a points multiplier. Earn tips to unlock café decorations, and beat your personal best for each menu and translation direction.
+- Missed words return in later tickets and join your normal study review. Using a translation or correcting an answer keeps that word in review.
+- **Pause** whenever you need. The game also pauses when you switch tabs or leave the window. The clock stops while you read corrections and feedback.
+
+Use **1–9** to select ingredients, **Enter** to serve, and **Esc** to pause. On a phone, use the on-screen controls. French articles and accents follow the same rules as typing practice.
+
+The café menu uses the food and drink terms from the deck. Continue using the study modes for the full 130-word vocabulary, including descriptions and table expressions.
 
 ## Choose your practice
 
@@ -82,5 +97,5 @@ No account is needed. Your progress, saved words, settings, and current round ar
 
 Progress does not sync between browsers or devices. Clearing browser data or using private browsing may remove it. If browser storage is unavailable, you can still study during the current visit.
 
-To start fresh, open **Settings → Reset study data**.
+To start fresh, open **Settings → Reset study data**. This also resets your café, tips, and game records.
 

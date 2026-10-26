@@ -31,6 +31,7 @@
   function applyTheme(){
     const dark=currentTheme()==='dark';
     document.documentElement.dataset.theme=state.theme;
+    document.documentElement.dataset.exactAccents=String(state.strict);
     const button=$('#theme-toggle');
     if(button){
       button.setAttribute('aria-pressed',String(dark));
@@ -113,7 +114,7 @@
     renderStats();save();
   }
   function syncControls(){
-    document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===state.mode)));
+    document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===state.mode&&document.documentElement.dataset.view!=='game')));
     $('#category').value=state.category;$('#direction').value=state.direction;$('#length').value=state.length;
   }
   function renderStats(){
@@ -177,7 +178,7 @@
   function showSource(){
     info('From the classroom.',`<p>This deck comes from <strong>Vocabulaire – La Bonne Bouffe</strong>, your 21-slide PDF. It includes every listed vocabulary item: <strong>130 unique terms</strong> across 11 study topics. Adjectives and table vocabulary share slide 21.</p><p>French articles, singular/plural forms, and masculine/feminine forms are shown where useful. Typing accepts the alternatives listed in the deck, with optional articles. Accents are optional unless you turn on exact accents.</p><h3>A few useful clarifications.</h3><p>The classroom wording is kept where possible. A handful of typos are corrected and ambiguous translations are explained below and on the relevant cards.</p><div class="source-notes">${words.filter(w=>w.note).map(w=>`<div class="source-note"><strong>${html(w.en)} <span style="color:var(--secondary);font-weight:400">· slide ${w.page}</span></strong><p>${html(w.note)}</p></div>`).join('')}</div><h3>Reference checks</h3><p><a href="https://www.larousse.fr/dictionnaires/anglais-francais/pepper/601207" target="_blank" rel="noopener noreferrer">Larousse: pepper</a> · <a href="https://www.larousse.fr/dictionnaires/anglais-francais/healthy/585835" target="_blank" rel="noopener noreferrer">Larousse: healthy</a> · <a href="https://www.larousse.fr/dictionnaires/francais-anglais/d%C3%A9tester/24699" target="_blank" rel="noopener noreferrer">Larousse: détester</a></p><p>Le fromage en grains was supplied for the incomplete Cheese curd entry. Meal names and several food terms vary by region; this is a study companion to your class deck.</p>`);
   }
-  function showSettings(){info('Make yourself at home.',`<p>Everything works in your browser. No sign-in, timers, or tracking. Your round, saved words, and learning progress stay on this device.</p><div class="settings-row"><div><label for="settings-strict">Exact French accents</label><small>Require é, è, ç, and other accents when typing.</small></div><input id="settings-strict" type="checkbox" ${state.strict?'checked':''}></div><div class="settings-row"><div><label for="settings-theme">Appearance</label><small>Choose a theme or follow your device.</small></div><select id="settings-theme"><option value="system" ${state.theme==='system'?'selected':''}>Use device setting</option><option value="light" ${state.theme==='light'?'selected':''}>Light</option><option value="dark" ${state.theme==='dark'?'selected':''}>Dark</option></select></div><h3>Start fresh</h3><p>Clear all progress, saved words, and the current round on this browser.</p><button class="danger-button" data-action="confirm-reset">Reset study data…</button><div id="reset-area"></div>`);}
+  function showSettings(){info('Make yourself at home.',`<p>Everything works in your browser. No sign-in or tracking. Study at your own pace, or play a timed shift in Order Up! Your progress and café stay on this device.</p><div class="settings-row"><div><label for="settings-strict">Exact French accents</label><small>Require é, è, ç, and other accents when typing.</small></div><input id="settings-strict" type="checkbox" ${state.strict?'checked':''}></div><div class="settings-row"><div><label for="settings-theme">Appearance</label><small>Choose a theme or follow your device.</small></div><select id="settings-theme"><option value="system" ${state.theme==='system'?'selected':''}>Use device setting</option><option value="light" ${state.theme==='light'?'selected':''}>Light</option><option value="dark" ${state.theme==='dark'?'selected':''}>Dark</option></select></div><h3>Start fresh</h3><p>Clear your progress, saved words, café upgrades, and personal bests on this browser.</p><button class="danger-button" data-action="confirm-reset">Reset study data…</button><div id="reset-area"></div>`);}
   function showShortcuts(){info('Keep your hands on the keys.',`<table class="shortcut-table"><caption>Flashcards</caption><tr><td>Turn the card</td><td><kbd>space</kbd></td></tr><tr><td>Still learning (after reveal)</td><td><kbd>1</kbd></td></tr><tr><td>Got it (after reveal)</td><td><kbd>2</kbd></td></tr></table><table class="shortcut-table" style="margin-top:24px"><caption>Multiple choice & typing</caption><tr><td>Choose a quiz answer</td><td><kbd>1</kbd> – <kbd>4</kbd></td></tr><tr><td>Check typed answer / continue</td><td><kbd>return</kbd></td></tr><tr><td>Close a dialog</td><td><kbd>esc</kbd></td></tr></table><p style="margin-top:22px">Use Tab to move between controls. On a phone or tablet, tap the card or use the on-screen buttons.</p>`);}
   const actions={
     'toggle-theme':()=>setTheme(currentTheme()==='dark'?'light':'dark'),
@@ -190,9 +191,9 @@
     'retry-missed':()=>{const ids=state.session.responses.filter(r=>!r.correct||r.assisted).map(r=>r.id);if(ids.length)startRound(ids);},
     'study-saved':()=>{state.category='saved';$('#library-dialog').close();startRound();},
     'close-dialog':()=>document.querySelectorAll('dialog[open]').forEach(d=>d.close()),
-    'confirm-reset':()=>{$('#reset-area').innerHTML='<div class="reset-confirm"><p>This clears your saved words and all learning history on this browser. This cannot be undone.</p><button class="button secondary" data-action="cancel-reset">Keep my progress</button> <button class="button primary" data-action="reset">Clear study data</button></div>';},
+    'confirm-reset':()=>{$('#reset-area').innerHTML='<div class="reset-confirm"><p>This clears your saved words, learning history, café upgrades, and game records on this browser. This cannot be undone.</p><button class="button secondary" data-action="cancel-reset">Keep my progress</button> <button class="button primary" data-action="reset">Clear study data</button></div>';},
     'cancel-reset':()=>{$('#reset-area').innerHTML='';},
-    reset:()=>{state={...defaults,progress:{},bookmarks:[],session:null};$('#info-dialog').close();startRound();toast('Study data cleared. A fresh start.');}
+    reset:()=>{state={...defaults,progress:{},bookmarks:[],session:null};document.dispatchEvent(new CustomEvent('bouffe:reset'));$('#info-dialog').close();startRound();toast('Study data cleared. A fresh start.');}
   };
   document.addEventListener('click',event=>{
     const b=event.target.closest('button');if(!b||b.disabled)return;
@@ -215,10 +216,11 @@
     const id=event.target.id;
     if(id==='settings-theme')setTheme(event.target.value);
     if(['category','direction','length'].includes(id)){state[id]=id==='length'?Number(event.target.value):event.target.value;startRound();}
-    if(['exact-accents','settings-strict'].includes(id)){state.strict=event.target.checked;save();if(id==='exact-accents'){state.session.typed=$('#typed-answer').value;render();$('#typed-answer').focus({preventScroll:true});}else if(state.mode==='typing')render();}
+    if(['exact-accents','settings-strict'].includes(id)){state.strict=event.target.checked;document.documentElement.dataset.exactAccents=String(state.strict);save();if(id==='exact-accents'){state.session.typed=$('#typed-answer').value;render();$('#typed-answer').focus({preventScroll:true});}else if(state.mode==='typing')render();}
     if(['library-category','starred-only'].includes(id))renderVocabulary();
   });
   document.addEventListener('keydown',event=>{
+    if(document.documentElement.dataset.view==='game')return;
     if(document.querySelector('dialog[open]')||event.ctrlKey||event.metaKey||event.altKey||event.isComposing)return;
     const target=event.target,editing=['INPUT','TEXTAREA','SELECT'].includes(target.tagName);
     if(event.key==='Enter'&&state.mode==='typing'&&target.id==='typed-answer'){event.preventDefault();if(answer())next();else check();return;}
@@ -232,6 +234,21 @@
   });
   document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}}));
   window.addEventListener('pagehide',save);
+  document.addEventListener('bouffe:study-view',render);
+  document.addEventListener('bouffe:game-recall',event=>{
+    if(!Array.isArray(event.detail))return;
+    for(const result of event.detail){
+      if(!result||!byId.has(result.id)||typeof result.correct!=='boolean')continue;
+      state.progress[result.id]=E.updateProgress(state.progress[result.id],result.correct,!!result.assisted);
+    }
+    renderStats();save();
+  });
+  document.addEventListener('bouffe:game-review',event=>{
+    const ids=Array.isArray(event.detail)?[...new Set(event.detail)].filter(id=>byId.has(id)):[];
+    if(!ids.length)return;
+    state.mode='flashcards';state.category='review';startRound(ids);
+    $('#study').focus({preventScroll:true});
+  });
   const options=categories.map(c=>`<option value="${c.id}">${html(c.en)}</option>`).join('');
   $('#category').innerHTML='<option value="all">All vocabulary</option>'+options+'<optgroup label="Your collections"><option value="review">Words to review</option><option value="saved">Saved words</option></optgroup>';
   $('#library-category').innerHTML='<option value="all">All topics</option>'+options;

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="description" content="Learn French food vocabulary from La Bonne Bouffe. Flashcards, multiple choice, typing practice, and Order Up! — a French restaurant vocabulary game.">
+  <title>La Bonne Bouffe — French vocabulary</title>
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTYiIGZpbGw9IiMxZDFkMWYiLz48ZyBmaWxsPSJub25lIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIj48cGF0aCBkPSJNMTYgMTJ2MTRtNy0xNHYxNG03LTE0djE0TTE2IDIydjRhNyA3IDAgMCAwIDE0IDB2LTRNMjMgMzN2MjBNNDggMTJ2NDFtMC00MWMtOCA1LTExIDE0LTExIDI0aDExIi8+PC9nPjwvc3ZnPgo=" type="image/svg+xml">
+  <script>
+    try {
+      const preference=JSON.parse(localStorage.getItem('bonne-bouffe.v1')||'null')?.theme;
+      if(preference==='light'||preference==='dark')document.documentElement.dataset.theme=preference;
+    } catch {}
+  </script>
+  <!-- BOUFFE_STYLES -->
+
+
+
+</head>
+<body>
+  <a class="skip-link" href="#study">Skip to practice</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#" class="brand" aria-label="La Bonne Bouffe home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 28 28" fill="none"><path d="M7 4v6m3-6v6m3-6v6M7 8.5v2a3 3 0 0 0 6 0v-2M10 14v10M21 4v20m0-20c-4 3-5 7-5 11h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>La Bonne Bouffe</a>
+      <nav aria-label="Main navigation"><button class="nav-button" data-action="vocabulary">Vocabulary <span class="count-badge">130</span></button><button id="theme-toggle" class="icon-button" data-action="toggle-theme" aria-label="Dark mode" aria-pressed="false" title="Switch to dark mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 13.1A8.6 8.6 0 0 1 10.9 3.5a8.6 8.6 0 1 0 9.6 9.6Z"/></svg></button><button class="icon-button" data-action="settings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 17h16M9 4v6m6 4v6"/></svg></button></nav>
+    </div>
+  </header>
+  <main class="page">
+    <section class="intro" aria-labelledby="page-title">
+      <div><p class="eyebrow">FRENCH VOCABULARY</p><h1 id="page-title">French, on the menu.</h1></div>
+      <button class="overall-progress" data-action="progress" aria-label="View your learning progress"><span class="progress-numbers"><strong id="learned-count">0</strong><span> / 130</span></span><span class="progress-caption">words learned <span aria-hidden="true">↗</span></span><span class="progress-track"><span id="overall-fill"></span></span></button>
+    </section>
+    <div class="practice-toolbar">
+      <div class="mode-picker" role="group" aria-label="Study method">
+        <button data-mode="flashcards" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="15" height="13" rx="3"/><path d="M16 4H6a3 3 0 0 0-3 3v8"/></svg><span>Flashcards</span></button>
+        <button data-mode="quiz" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 6 1.5 1.5L8 5M12 6h8M4 13h3m5 0h8M4 19h3m5 0h8"/></svg><span>Multiple choice</span></button>
+        <button data-mode="typing" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M12 6v14M8 20h8M4 9V6m16 3V6"/></svg><span>Type the answer</span></button>
+        <button id="game-tab" data-view="game" aria-pressed="false"><svg class="game-tab-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17h16M6 17a6 6 0 0 1 12 0M12 7V5m-2 0h4M3 20h18"/></svg><span>Order Up!</span><i class="game-tab-dot" aria-hidden="true"></i></button>
+      </div>
+      <button class="text-button new-round" data-action="new-round"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10a8 8 0 1 0-1 7M20 4v6h-6"/></svg>New round</button>
+    </div>
+    <section class="workspace" aria-label="Vocabulary practice">
+      <div class="study-column">
+        <div class="filters">
+          <label class="select-field"><span>Topic</span><select id="category" aria-label="Topic"></select></label>
+          <label class="select-field"><span>Translate</span><select id="direction" aria-label="Translation direction"><option value="mixed">Both ways</option><option value="fr-en">French → English</option><option value="en-fr">English → French</option></select></label>
+          <label class="select-field round-size"><span>Round</span><select id="length" aria-label="Round length"><option value="10">10 words</option><option value="20">20 words</option><option value="0">All words</option></select></label>
+        </div>
+        <section id="study" class="study-surface" tabindex="-1" aria-label="Current study question"></section>
+        <div class="study-bottom"><span id="round-position"></span><div id="round-dots" class="round-dots" aria-hidden="true"></div><span id="round-score"></span></div>
+        <p class="save-caption" id="save-caption"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>Progress saved on this device.</p>
+      </div>
+      <aside class="sidebar" aria-label="Session information">
+        <div class="session-card"><p class="eyebrow">THIS ROUND</p><h2 id="session-title">A little, every day.</h2><p id="session-description">Take a moment to recall the meaning before you turn the card.</p><div class="session-metrics"><div><strong id="session-correct">0</strong><span id="correct-label">Got it</span></div><div><strong id="session-review">0</strong><span>To review</span></div></div><div class="session-divider"></div><div id="keyboard-help" class="keyboard-help"></div></div>
+        <button class="review-link" data-action="review"><span class="review-symbol" aria-hidden="true">↻</span><span><strong>Give tricky words another go.</strong><small id="review-caption">Missed words will appear here.</small></span><span aria-hidden="true">›</span></button>
+        <div class="source-caption"><span class="source-dot"></span>From your classroom slides.<br><button data-action="source">About this vocabulary <span aria-hidden="true">↗</span></button></div>
+      </aside>
+    </section>
+    <section id="order-up" tabindex="-1" aria-label="Order Up restaurant game" hidden></section>
+    <footer class="site-footer"><span>La Bonne Bouffe <span class="footer-dot">·</span> A French study companion.</span><button data-action="shortcuts">Keyboard shortcuts</button></footer>
+  </main>
+  <dialog id="library-dialog" class="library-dialog" aria-labelledby="library-title"><div class="dialog-heading"><div><p class="eyebrow">YOUR WORD LIST</p><h2 id="library-title">Vocabulary</h2><p>130 terms. A whole menu to explore.</p></div><button class="icon-button" data-action="close-dialog" aria-label="Close vocabulary">✕</button></div><div class="library-tools"><label class="search-box"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></svg><input id="word-search" type="search" placeholder="Search French or English" aria-label="Search vocabulary"></label><select id="library-category" aria-label="Filter vocabulary by topic"></select></div><div class="library-summary"><span id="library-count"></span><label><input type="checkbox" id="starred-only"> Saved words only</label></div><div id="word-list" class="word-list"></div><div class="dialog-foot"><span>Save a word with the bookmark.</span><button class="text-button" data-action="study-saved">Practise saved words <span aria-hidden="true">→</span></button></div></dialog>
+  <dialog id="info-dialog" class="info-dialog" aria-labelledby="info-title"><div class="dialog-heading"><h2 id="info-title"></h2><button class="icon-button" data-action="close-dialog" aria-label="Close dialog">✕</button></div><div id="info-body"></div></dialog>
+  <div class="toast" id="toast" role="status"></div>
+  <div class="sr-only" id="announcer" role="status" aria-live="polite"></div>
+  <noscript><p class="noscript">Please enable JavaScript to use the study tools.</p></noscript>
+<!-- BOUFFE_SCRIPTS -->
+</body>
+</html>
