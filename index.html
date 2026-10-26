@@ -151,6 +151,10 @@
 @media(prefers-reduced-motion:reduce){.case-crack-scene *{animation:none!important}.crack-lid{transform:rotateX(112deg)}}
 
 .case-crack-scene:not(.is-playing) *{animation-play-state:paused!important}
+/* A quiet code form at the very bottom of the Cases tab. */
+.shop-code{display:grid;grid-template-columns:minmax(0,1fr) minmax(230px,350px);gap:28px;align-items:center;border-top:1px solid var(--shop-line);margin-top:30px;padding-top:26px}.shop-code h3{font-size:21px;font-weight:500;letter-spacing:-.5px;margin:0 0 8px}.shop-code .shop-kicker{margin:0 0 9px}.shop-code #shop-code-help{font-size:10px;line-height:1.7;color:var(--shop-sub);margin:0}.shop-code form{min-width:0}.shop-code label{display:block;font-size:10px;color:#c8d1d9;margin-bottom:8px}.shop-code form>div{display:flex;gap:8px}.shop-code input{min-width:0;width:100%;height:43px;background:#101a23;color:#e4eaf0;border:1px solid #465663;border-radius:6px;padding:10px 12px;font-size:12px;letter-spacing:.3px}.shop-code input::placeholder{color:#83929e}.shop-code input[aria-invalid=true]{border-color:#c68179}.shop-code .shop-primary{flex-shrink:0;padding-inline:19px}.shop-code-notice{font-size:10px;color:#e4a097;line-height:1.6;margin:8px 0 0;min-height:16px}.shop-code-notice.is-success{color:#dec18a}
+@media(max-width:760px){.shop-code{grid-template-columns:1fr;gap:18px}.shop-code h3{font-size:20px}}
+@media(max-width:520px){.shop-code{padding-top:22px;margin-top:25px;gap:17px}.shop-code .shop-kicker{font-size:6px}.shop-code form>div{gap:7px}.shop-code .shop-primary{padding-inline:16px}.shop-code input{font-size:16px}.shop-code-notice{font-size:10px}}
 
 </style>
 
@@ -555,18 +559,21 @@ BOUFFE_CASE_AUDIO_ASSETS.reveal4=BOUFFE_CASE_AUDIO_ASSETS.reveal3;
   ];
   const skinById = new Map(skins.map(s => [s.id,s]));
   const caseById = new Map(cases.map(c => [c.id,c]));
+  const tipCodes = new Map([['bonus',250],['frenchistuff',100],['yummyfood',200],['iloveseals',1000]]);
   const clamp = n => Math.min(1,Math.max(0,n));
   const amount = n => Number.isFinite(n) ? Math.max(0,Math.floor(n)) : 0;
   function random() {
     if (root.crypto?.getRandomValues) { const a=new Uint32Array(1);root.crypto.getRandomValues(a);return a[0]/4294967296; }
     return Math.random();
   }
-  function fresh(tips=0) { return { balance:amount(tips), inventory:[], equipped:null, opened:0, soldTips:0, soldCount:0, soundMuted:false }; }
+  function fresh(tips=0) { return { balance:amount(tips), inventory:[], equipped:null, opened:0, soldTips:0, soldCount:0, soundMuted:false, redeemedCodes:[] }; }
   function restore(data,lifetime=0) {
     if (!data || typeof data!=='object') return fresh(lifetime);
     const state=fresh();state.soldTips=amount(data.soldTips);state.soldCount=amount(data.soldCount);
     state.soundMuted=data.soundMuted===true;
-    state.balance=Math.min(amount(data.balance),amount(lifetime)+state.soldTips);
+    state.redeemedCodes=[...new Set(Array.isArray(data.redeemedCodes)?data.redeemedCodes.filter(code=>typeof code==='string'&&tipCodes.has(code)):[])];
+    const codeTips=state.redeemedCodes.reduce((sum,code)=>sum+tipCodes.get(code),0);
+    state.balance=Math.min(amount(data.balance),amount(lifetime)+state.soldTips+codeTips);
     const seen=new Set();
     if (Array.isArray(data.inventory)) for (const item of data.inventory) {
       if (!item || typeof item.uid!=='string' || !/^[a-zA-Z0-9-]{1,90}$/.test(item.uid) || seen.has(item.uid) || !skinById.has(item.skin) || !Number.isFinite(item.float) || item.float<0 || item.float>1) continue;
@@ -603,6 +610,15 @@ BOUFFE_CASE_AUDIO_ASSETS.reveal4=BOUFFE_CASE_AUDIO_ASSETS.reveal3;
     return {ok:true,item:prize};
   }
   function equipped(state) { return state.inventory.find(x=>x.uid===state.equipped)||null; }
+  function redeem(state,value){
+    const code=typeof value==='string'?value.trim().toLowerCase():'';
+    if(!code)return {ok:false,error:'Enter a code first.'};
+    if(!tipCodes.has(code))return {ok:false,error:'That code wasn’t recognized.'};
+    if(state.redeemedCodes.includes(code))return {ok:false,error:'You’ve already used that code.'};
+    const tips=tipCodes.get(code);
+    state.redeemedCodes.push(code);state.balance+=tips;
+    return {ok:true,tips};
+  }
   function equip(state,uid) { if(uid!==null&&!state.inventory.some(x=>x.uid===uid))return false;state.equipped=uid;return true; }
   function skin(item) { return skinById.get(item?.skin)||null; }
   function rarity(item) { const s=skin(item);return s?rarities[s.rarity]:null; }
@@ -730,7 +746,7 @@ BOUFFE_CASE_AUDIO_ASSETS.reveal4=BOUFFE_CASE_AUDIO_ASSETS.reveal3;
     }
     return `<svg class="skin-art skin-tier-${s.rarity}" viewBox="0 0 220 220" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><radialGradient id="${id}-base" cx="35%" cy="25%"><stop stop-color="${b}"/><stop offset="1" stop-color="${a}"/></radialGradient><radialGradient id="${id}-light"><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset=".85" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient><linearGradient id="${id}-rim" x2="1" y2="1"><stop stop-color="${gold?'#fff0b7':c}"/><stop offset=".35" stop-color="${gold?'#ad701c':a}"/><stop offset=".68" stop-color="${gold?'#fbd47e':c}"/><stop offset="1" stop-color="${gold?'#86541a':b}"/></linearGradient><linearGradient id="${id}-rainbow" x2="1" y2="1"><stop stop-color="#4cced0"/><stop offset=".35" stop-color="#7282ed"/><stop offset=".65" stop-color="#ef79bc"/><stop offset="1" stop-color="#ffdb85"/></linearGradient><clipPath id="${id}-clip"><circle cx="110" cy="110" r="90"/></clipPath><filter id="${id}-blur"><feGaussianBlur stdDeviation="12"/></filter></defs><circle cx="110" cy="112" r="104" fill="#000" opacity=".22"/><circle cx="110" cy="108" r="103" fill="url(#${id}-rim)"/><circle cx="110" cy="108" r="97" fill="url(#${id}-base)"/><g clip-path="url(#${id}-clip)" transform="rotate(${rotation} 110 110)" fill="none" stroke="${c}" stroke-width=".7" stroke-opacity=".55">${pattern}</g><circle cx="110" cy="110" r="81" fill="none" stroke="${c}" stroke-opacity=".6" stroke-width="1"/><g clip-path="url(#${id}-clip)">${scratches}</g><circle cx="110" cy="108" r="97" fill="url(#${id}-light)"/><circle cx="110" cy="108" r="100" fill="none" stroke="#fff" stroke-opacity="${.32-v*.2}" stroke-width=".8"/>${gold?'<path d="m110 8 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="#fff4c8"/>':''}</svg>`;
   }
-  const api={rarities,skins,cases,fresh,restore,wear,draw,open,equipped,equip,skin,rarity,salePrice,sell,expectedResale,patternInfo,art,random};
+  const api={rarities,skins,cases,fresh,restore,wear,draw,open,equipped,equip,skin,rarity,salePrice,sell,redeem,expectedResale,patternInfo,art,random};
   root.BOUFFE_PLATES=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);
 
@@ -1111,7 +1127,7 @@ BOUFFE_CASE_AUDIO_ASSETS.reveal4=BOUFFE_CASE_AUDIO_ASSETS.reveal3;
   const $=q=>document.querySelector(q);
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const arrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5-7 7 7 7M2 12h19"/></svg>';
-  let context=null,active=false,tab='cases',selectedCase='service',stage='browse',prize=null,inspected=null,sort='newest',timer=null,generation=0,artSerial=0,pendingSale=null,lastSale='',spinFrame=0;
+  let context=null,active=false,tab='cases',selectedCase='service',stage='browse',prize=null,inspected=null,sort='newest',timer=null,generation=0,artSerial=0,pendingSale=null,lastSale='',spinFrame=0,codeText='',codeNotice='',codeSuccess=false;
   const box=()=>S.cases.find(c=>c.id===selectedCase)||S.cases[0];
   const money=n=>n.toLocaleString('en-CA');
   const art=item=>S.art(item,`shop-${++artSerial}`);
@@ -1128,7 +1144,10 @@ BOUFFE_CASE_AUDIO_ASSETS.reveal4=BOUFFE_CASE_AUDIO_ASSETS.reveal3;
     const content=`<div class="shop-item-art">${art(item)}</div><span class="shop-item-kind">PLATE / ${esc(r.name.toUpperCase())}</span><strong>${esc(skin.name)}</strong>${details}`;
     return preview||reel?`<div class="shop-item ${reel?'reel-item':''}" style="--rarity:${r.color}">${content}</div>`:`<button class="shop-item ${inspected===item.uid?'is-inspected':''}" data-shop-inspect="${item.uid}" style="--rarity:${r.color}" aria-pressed="${inspected===item.uid}">${content}</button>`;
   }
-  function browse(){const c=box();return `${caseCards()}<section class="shop-case-detail"><div><p class="shop-kicker">${esc(c.name.toUpperCase())} / ${S.skins.length} FINISHES</p><h3>Something for the pass.</h3><p>A fresh plate, its own pattern, and a float from 0 to 1. Equip your drops or sell them back for tips.</p></div><div class="shop-open-action"><button class="shop-primary" data-shop-action="open" ${context.state.balance<c.price?'disabled':''}>Open case <span>${c.price} tips</span></button><small>${context.state.balance<c.price?`${c.price-context.state.balance} more tips needed. Earn them in a shift.`:`${money(context.state.balance-c.price)} tips will remain.`}</small></div></section><div class="shop-odds"><span>DROP CHANCES</span>${S.rarities.map((r,i)=>`<span style="--rarity:${r.color}"><i></i>${esc(r.name)}<b>${c.weights[i]}%</b></span>`).join('')}</div><section class="shop-contents"><div class="shop-section-heading"><h3>Inside the case</h3><span>Rarity sets the finish. Float sets the wear.</span></div><div class="shop-drop-grid">${[...S.skins].sort((a,b)=>a.rarity-b.rarity).map(s=>plateCard(sample(s),{preview:true})).join('')}</div></section>`;}
+  function codeForm(){
+    return `<section class="shop-code"><div><p class="shop-kicker">A LITTLE EXTRA FOR THE KITCHEN</p><h3>Have a code?</h3><p id="shop-code-help">One use per code on this browser.</p></div><form id="shop-code-form"><label for="shop-code-input">Redeem a code</label><div><input id="shop-code-input" name="code" type="text" value="${esc(codeText)}" placeholder="Enter code" maxlength="64" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="shop-code-help shop-code-notice" aria-invalid="${!!codeNotice&&!codeSuccess}"><button class="shop-primary" type="submit">Redeem</button></div><p id="shop-code-notice" class="shop-code-notice ${codeSuccess?'is-success':''}">${esc(codeNotice)}</p></form></section>`;
+  }
+  function browse(){const c=box();return `${caseCards()}<section class="shop-case-detail"><div><p class="shop-kicker">${esc(c.name.toUpperCase())} / ${S.skins.length} FINISHES</p><h3>Something for the pass.</h3><p>A fresh plate, its own pattern, and a float from 0 to 1. Equip your drops or sell them back for tips.</p></div><div class="shop-open-action"><button class="shop-primary" data-shop-action="open" ${context.state.balance<c.price?'disabled':''}>Open case <span>${c.price} tips</span></button><small>${context.state.balance<c.price?`${c.price-context.state.balance} more tips needed. Earn them in a shift.`:`${money(context.state.balance-c.price)} tips will remain.`}</small></div></section><div class="shop-odds"><span>DROP CHANCES</span>${S.rarities.map((r,i)=>`<span style="--rarity:${r.color}"><i></i>${esc(r.name)}<b>${c.weights[i]}%</b></span>`).join('')}</div><section class="shop-contents"><div class="shop-section-heading"><h3>Inside the case</h3><span>Rarity sets the finish. Float sets the wear.</span></div><div class="shop-drop-grid">${[...S.skins].sort((a,b)=>a.rarity-b.rarity).map(s=>plateCard(sample(s),{preview:true})).join('')}</div></section>${codeForm()}`;}
   function floatMeter(item){return `<div class="float-block"><div class="float-label"><span>WEAR RATING</span><strong>${item.float.toFixed(6)}</strong></div><div class="float-meter"><i></i><i></i><i></i><i></i><i></i><b style="left:${Math.min(99.5,Math.max(.5,item.float*100))}%"></b></div><div class="float-ends"><span>0.00 / PRISTINE</span><span>1.00 / WORN</span></div></div>`;}
   function saleControl(item){
     const price=S.salePrice(item);
@@ -1217,7 +1236,7 @@ BOUFFE_CASE_AUDIO_ASSETS.reveal4=BOUFFE_CASE_AUDIO_ASSETS.reveal3;
   }
   function dismiss(notify=true){if(!active)return;clearOpening();generation++;active=false;if(notify)context.onClose();}
   function open(options){
-    dismiss(false);context=options;active=true;tab='cases';stage='browse';prize=null;inspected=context.state.equipped;pendingSale=null;lastSale='';
+    dismiss(false);context=options;active=true;tab='cases';stage='browse';prize=null;inspected=context.state.equipped;pendingSale=null;lastSale='';codeText='';codeNotice='';codeSuccess=false;
     audio.setMuted(context.state.soundMuted);audio.prepare();
     render();$('.shop-back')?.focus({preventScroll:true});announce('Plate collection opened.');
   }
@@ -1252,6 +1271,16 @@ BOUFFE_CASE_AUDIO_ASSETS.reveal4=BOUFFE_CASE_AUDIO_ASSETS.reveal3;
       if(action==='equip-result'){S.equip(context.state,prize.uid);save();announce('Plate equipped.');}
       tab='inventory';stage='browse';inspected=prize.uid;render();
     }
+  });
+  document.addEventListener('input',e=>{if(active&&e.target.id==='shop-code-input')codeText=e.target.value;});
+  document.addEventListener('submit',e=>{
+    if(e.target.id!=='shop-code-form')return;
+    e.preventDefault();if(!active||stage!=='browse'||tab!=='cases')return;
+    codeText=$('#shop-code-input').value;
+    const transaction=S.redeem(context.state,codeText);codeSuccess=transaction.ok;
+    if(transaction.ok){codeText='';codeNotice=`Code redeemed. +${money(transaction.tips)} tips added.`;save();}
+    else codeNotice=transaction.error;
+    render();$('#shop-code-input')?.focus({preventScroll:true});announce(codeNotice);
   });
   document.addEventListener('change',e=>{if(active&&e.target.id==='shop-sort'){sort=e.target.value;render();}});
   document.addEventListener('keydown',e=>{if(active&&e.key==='Escape'&&!document.querySelector('dialog[open]')){e.preventDefault();dismiss();}});

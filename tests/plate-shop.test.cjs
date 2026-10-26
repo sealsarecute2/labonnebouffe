@@ -59,3 +59,11 @@ test('leaving during audio preparation cannot restart the opening or charge twic
   assert.equal(s.host.innerHTML,html);assert.equal(s.counts.open,0);assert.equal(s.state.balance,88);
   assert.equal(s.state.inventory.length,1);assert.equal(s.saves(),1);assert.equal(s.timers.size,0);
 });
+test('the Cases code form credits the wallet, reports repeats and stays out of inventory',()=>{
+  const s=shop();assert.match(s.host.innerHTML,/<section class="shop-code">/);assert.doesNotMatch(s.host.innerHTML,/bonus|frenchistuff|yummyfood|iloveseals/);
+  const submit=value=>{s.get('#shop-code-input').value=value;s.emit('submit',{target:{id:'shop-code-form'},preventDefault(){}});};
+  submit('not-a-code');assert.equal(s.state.balance,100);assert.equal(s.saves(),0);assert.match(s.host.innerHTML,/wasn’t recognized/);
+  submit(' BONUS ');assert.equal(s.state.balance,350);assert.equal(s.saves(),1);assert.match(s.host.innerHTML,/\+250 tips added/);
+  submit('bonus');assert.equal(s.state.balance,350);assert.equal(s.saves(),1);assert.match(s.host.innerHTML,/already used/);
+  s.click({shopTab:'inventory'});assert.doesNotMatch(s.host.innerHTML,/shop-code-form/);submit('iloveseals');assert.equal(s.state.balance,350);
+});

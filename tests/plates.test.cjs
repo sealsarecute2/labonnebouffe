@@ -127,3 +127,24 @@ test('premium high-rarity chances are reduced and every case has a net resale lo
     assert.ok(sum/30000<box.price);assert.ok(Math.abs(sum/30000-P.expectedResale(box.id))<.5);
   });
 });
+test('tip codes award the four exact amounts only once, including mixed case and whitespace',()=>{
+  const state=P.fresh();
+  for(const [code,tips] of [['bonus',250],['frenchistuff',100],['yummyfood',200],['iloveseals',1000]]){
+    const before=state.balance;assert.deepEqual(P.redeem(state,'  '+code.toUpperCase()+'  '),{ok:true,tips});assert.equal(state.balance,before+tips);
+    const saved=JSON.stringify(state);assert.equal(P.redeem(state,code).ok,false);assert.equal(JSON.stringify(state),saved);
+  }
+  assert.equal(state.balance,1550);assert.equal(state.redeemedCodes.length,4);
+});
+test('code credits and claims survive purchases, resale and reload without refilling spent tips',()=>{
+  const state=P.fresh(20);P.redeem(state,'bonus');
+  const item=P.open(state,'service',rolls(.1,.1,.2,.1),1).item;assert.equal(state.balance,258);
+  let restored=P.restore(JSON.parse(JSON.stringify(state)),20);assert.equal(restored.balance,258);assert.deepEqual(restored.redeemedCodes,['bonus']);
+  assert.equal(P.redeem(restored,'bonus').ok,false);P.redeem(restored,'frenchistuff');P.sell(restored,item.uid);const balance=restored.balance;
+  restored=P.restore(JSON.parse(JSON.stringify(restored)),20);assert.equal(restored.balance,balance);assert.equal(P.redeem(restored,' FRENCHISTUFF ').ok,false);assert.equal(restored.balance,balance);
+});
+test('unknown codes cannot change the wallet and older saves still accept new codes',()=>{
+  const state=P.restore({balance:14,inventory:[]},20);assert.deepEqual(state.redeemedCodes,[]);
+  for(const input of ['', ' ', 'made-up', '__proto__', 'constructor', null, 250, {}]){const before=JSON.stringify(state);assert.equal(P.redeem(state,input).ok,false);assert.equal(JSON.stringify(state),before);}
+  assert.equal(P.redeem(state,'yummyfood').ok,true);assert.equal(state.balance,214);
+  const cleaned=P.restore({balance:9999,redeemedCodes:['bonus','bonus','made-up','iloveseals',null]},0);assert.equal(cleaned.balance,1250);assert.deepEqual(cleaned.redeemedCodes,['bonus','iloveseals']);
+});

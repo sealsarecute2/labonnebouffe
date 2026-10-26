@@ -7,7 +7,7 @@
   const $=q=>document.querySelector(q);
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const arrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5-7 7 7 7M2 12h19"/></svg>';
-  let context=null,active=false,tab='cases',selectedCase='service',stage='browse',prize=null,inspected=null,sort='newest',timer=null,generation=0,artSerial=0,pendingSale=null,lastSale='',spinFrame=0;
+  let context=null,active=false,tab='cases',selectedCase='service',stage='browse',prize=null,inspected=null,sort='newest',timer=null,generation=0,artSerial=0,pendingSale=null,lastSale='',spinFrame=0,codeText='',codeNotice='',codeSuccess=false;
   const box=()=>S.cases.find(c=>c.id===selectedCase)||S.cases[0];
   const money=n=>n.toLocaleString('en-CA');
   const art=item=>S.art(item,`shop-${++artSerial}`);
@@ -24,7 +24,10 @@
     const content=`<div class="shop-item-art">${art(item)}</div><span class="shop-item-kind">PLATE / ${esc(r.name.toUpperCase())}</span><strong>${esc(skin.name)}</strong>${details}`;
     return preview||reel?`<div class="shop-item ${reel?'reel-item':''}" style="--rarity:${r.color}">${content}</div>`:`<button class="shop-item ${inspected===item.uid?'is-inspected':''}" data-shop-inspect="${item.uid}" style="--rarity:${r.color}" aria-pressed="${inspected===item.uid}">${content}</button>`;
   }
-  function browse(){const c=box();return `${caseCards()}<section class="shop-case-detail"><div><p class="shop-kicker">${esc(c.name.toUpperCase())} / ${S.skins.length} FINISHES</p><h3>Something for the pass.</h3><p>A fresh plate, its own pattern, and a float from 0 to 1. Equip your drops or sell them back for tips.</p></div><div class="shop-open-action"><button class="shop-primary" data-shop-action="open" ${context.state.balance<c.price?'disabled':''}>Open case <span>${c.price} tips</span></button><small>${context.state.balance<c.price?`${c.price-context.state.balance} more tips needed. Earn them in a shift.`:`${money(context.state.balance-c.price)} tips will remain.`}</small></div></section><div class="shop-odds"><span>DROP CHANCES</span>${S.rarities.map((r,i)=>`<span style="--rarity:${r.color}"><i></i>${esc(r.name)}<b>${c.weights[i]}%</b></span>`).join('')}</div><section class="shop-contents"><div class="shop-section-heading"><h3>Inside the case</h3><span>Rarity sets the finish. Float sets the wear.</span></div><div class="shop-drop-grid">${[...S.skins].sort((a,b)=>a.rarity-b.rarity).map(s=>plateCard(sample(s),{preview:true})).join('')}</div></section>`;}
+  function codeForm(){
+    return `<section class="shop-code"><div><p class="shop-kicker">A LITTLE EXTRA FOR THE KITCHEN</p><h3>Have a code?</h3><p id="shop-code-help">One use per code on this browser.</p></div><form id="shop-code-form"><label for="shop-code-input">Redeem a code</label><div><input id="shop-code-input" name="code" type="text" value="${esc(codeText)}" placeholder="Enter code" maxlength="64" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="shop-code-help shop-code-notice" aria-invalid="${!!codeNotice&&!codeSuccess}"><button class="shop-primary" type="submit">Redeem</button></div><p id="shop-code-notice" class="shop-code-notice ${codeSuccess?'is-success':''}">${esc(codeNotice)}</p></form></section>`;
+  }
+  function browse(){const c=box();return `${caseCards()}<section class="shop-case-detail"><div><p class="shop-kicker">${esc(c.name.toUpperCase())} / ${S.skins.length} FINISHES</p><h3>Something for the pass.</h3><p>A fresh plate, its own pattern, and a float from 0 to 1. Equip your drops or sell them back for tips.</p></div><div class="shop-open-action"><button class="shop-primary" data-shop-action="open" ${context.state.balance<c.price?'disabled':''}>Open case <span>${c.price} tips</span></button><small>${context.state.balance<c.price?`${c.price-context.state.balance} more tips needed. Earn them in a shift.`:`${money(context.state.balance-c.price)} tips will remain.`}</small></div></section><div class="shop-odds"><span>DROP CHANCES</span>${S.rarities.map((r,i)=>`<span style="--rarity:${r.color}"><i></i>${esc(r.name)}<b>${c.weights[i]}%</b></span>`).join('')}</div><section class="shop-contents"><div class="shop-section-heading"><h3>Inside the case</h3><span>Rarity sets the finish. Float sets the wear.</span></div><div class="shop-drop-grid">${[...S.skins].sort((a,b)=>a.rarity-b.rarity).map(s=>plateCard(sample(s),{preview:true})).join('')}</div></section>${codeForm()}`;}
   function floatMeter(item){return `<div class="float-block"><div class="float-label"><span>WEAR RATING</span><strong>${item.float.toFixed(6)}</strong></div><div class="float-meter"><i></i><i></i><i></i><i></i><i></i><b style="left:${Math.min(99.5,Math.max(.5,item.float*100))}%"></b></div><div class="float-ends"><span>0.00 / PRISTINE</span><span>1.00 / WORN</span></div></div>`;}
   function saleControl(item){
     const price=S.salePrice(item);
@@ -113,7 +116,7 @@
   }
   function dismiss(notify=true){if(!active)return;clearOpening();generation++;active=false;if(notify)context.onClose();}
   function open(options){
-    dismiss(false);context=options;active=true;tab='cases';stage='browse';prize=null;inspected=context.state.equipped;pendingSale=null;lastSale='';
+    dismiss(false);context=options;active=true;tab='cases';stage='browse';prize=null;inspected=context.state.equipped;pendingSale=null;lastSale='';codeText='';codeNotice='';codeSuccess=false;
     audio.setMuted(context.state.soundMuted);audio.prepare();
     render();$('.shop-back')?.focus({preventScroll:true});announce('Plate collection opened.');
   }
@@ -148,6 +151,16 @@
       if(action==='equip-result'){S.equip(context.state,prize.uid);save();announce('Plate equipped.');}
       tab='inventory';stage='browse';inspected=prize.uid;render();
     }
+  });
+  document.addEventListener('input',e=>{if(active&&e.target.id==='shop-code-input')codeText=e.target.value;});
+  document.addEventListener('submit',e=>{
+    if(e.target.id!=='shop-code-form')return;
+    e.preventDefault();if(!active||stage!=='browse'||tab!=='cases')return;
+    codeText=$('#shop-code-input').value;
+    const transaction=S.redeem(context.state,codeText);codeSuccess=transaction.ok;
+    if(transaction.ok){codeText='';codeNotice=`Code redeemed. +${money(transaction.tips)} tips added.`;save();}
+    else codeNotice=transaction.error;
+    render();$('#shop-code-input')?.focus({preventScroll:true});announce(codeNotice);
   });
   document.addEventListener('change',e=>{if(active&&e.target.id==='shop-sort'){sort=e.target.value;render();}});
   document.addEventListener('keydown',e=>{if(active&&e.key==='Escape'&&!document.querySelector('dialog[open]')){e.preventDefault();dismiss();}});

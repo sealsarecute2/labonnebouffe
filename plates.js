@@ -47,18 +47,21 @@
   ];
   const skinById = new Map(skins.map(s => [s.id,s]));
   const caseById = new Map(cases.map(c => [c.id,c]));
+  const tipCodes = new Map([['bonus',250],['frenchistuff',100],['yummyfood',200],['iloveseals',1000]]);
   const clamp = n => Math.min(1,Math.max(0,n));
   const amount = n => Number.isFinite(n) ? Math.max(0,Math.floor(n)) : 0;
   function random() {
     if (root.crypto?.getRandomValues) { const a=new Uint32Array(1);root.crypto.getRandomValues(a);return a[0]/4294967296; }
     return Math.random();
   }
-  function fresh(tips=0) { return { balance:amount(tips), inventory:[], equipped:null, opened:0, soldTips:0, soldCount:0, soundMuted:false }; }
+  function fresh(tips=0) { return { balance:amount(tips), inventory:[], equipped:null, opened:0, soldTips:0, soldCount:0, soundMuted:false, redeemedCodes:[] }; }
   function restore(data,lifetime=0) {
     if (!data || typeof data!=='object') return fresh(lifetime);
     const state=fresh();state.soldTips=amount(data.soldTips);state.soldCount=amount(data.soldCount);
     state.soundMuted=data.soundMuted===true;
-    state.balance=Math.min(amount(data.balance),amount(lifetime)+state.soldTips);
+    state.redeemedCodes=[...new Set(Array.isArray(data.redeemedCodes)?data.redeemedCodes.filter(code=>typeof code==='string'&&tipCodes.has(code)):[])];
+    const codeTips=state.redeemedCodes.reduce((sum,code)=>sum+tipCodes.get(code),0);
+    state.balance=Math.min(amount(data.balance),amount(lifetime)+state.soldTips+codeTips);
     const seen=new Set();
     if (Array.isArray(data.inventory)) for (const item of data.inventory) {
       if (!item || typeof item.uid!=='string' || !/^[a-zA-Z0-9-]{1,90}$/.test(item.uid) || seen.has(item.uid) || !skinById.has(item.skin) || !Number.isFinite(item.float) || item.float<0 || item.float>1) continue;
@@ -95,6 +98,15 @@
     return {ok:true,item:prize};
   }
   function equipped(state) { return state.inventory.find(x=>x.uid===state.equipped)||null; }
+  function redeem(state,value){
+    const code=typeof value==='string'?value.trim().toLowerCase():'';
+    if(!code)return {ok:false,error:'Enter a code first.'};
+    if(!tipCodes.has(code))return {ok:false,error:'That code wasn’t recognized.'};
+    if(state.redeemedCodes.includes(code))return {ok:false,error:'You’ve already used that code.'};
+    const tips=tipCodes.get(code);
+    state.redeemedCodes.push(code);state.balance+=tips;
+    return {ok:true,tips};
+  }
   function equip(state,uid) { if(uid!==null&&!state.inventory.some(x=>x.uid===uid))return false;state.equipped=uid;return true; }
   function skin(item) { return skinById.get(item?.skin)||null; }
   function rarity(item) { const s=skin(item);return s?rarities[s.rarity]:null; }
@@ -222,6 +234,6 @@
     }
     return `<svg class="skin-art skin-tier-${s.rarity}" viewBox="0 0 220 220" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><radialGradient id="${id}-base" cx="35%" cy="25%"><stop stop-color="${b}"/><stop offset="1" stop-color="${a}"/></radialGradient><radialGradient id="${id}-light"><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset=".85" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient><linearGradient id="${id}-rim" x2="1" y2="1"><stop stop-color="${gold?'#fff0b7':c}"/><stop offset=".35" stop-color="${gold?'#ad701c':a}"/><stop offset=".68" stop-color="${gold?'#fbd47e':c}"/><stop offset="1" stop-color="${gold?'#86541a':b}"/></linearGradient><linearGradient id="${id}-rainbow" x2="1" y2="1"><stop stop-color="#4cced0"/><stop offset=".35" stop-color="#7282ed"/><stop offset=".65" stop-color="#ef79bc"/><stop offset="1" stop-color="#ffdb85"/></linearGradient><clipPath id="${id}-clip"><circle cx="110" cy="110" r="90"/></clipPath><filter id="${id}-blur"><feGaussianBlur stdDeviation="12"/></filter></defs><circle cx="110" cy="112" r="104" fill="#000" opacity=".22"/><circle cx="110" cy="108" r="103" fill="url(#${id}-rim)"/><circle cx="110" cy="108" r="97" fill="url(#${id}-base)"/><g clip-path="url(#${id}-clip)" transform="rotate(${rotation} 110 110)" fill="none" stroke="${c}" stroke-width=".7" stroke-opacity=".55">${pattern}</g><circle cx="110" cy="110" r="81" fill="none" stroke="${c}" stroke-opacity=".6" stroke-width="1"/><g clip-path="url(#${id}-clip)">${scratches}</g><circle cx="110" cy="108" r="97" fill="url(#${id}-light)"/><circle cx="110" cy="108" r="100" fill="none" stroke="#fff" stroke-opacity="${.32-v*.2}" stroke-width=".8"/>${gold?'<path d="m110 8 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="#fff4c8"/>':''}</svg>`;
   }
-  const api={rarities,skins,cases,fresh,restore,wear,draw,open,equipped,equip,skin,rarity,salePrice,sell,expectedResale,patternInfo,art,random};
+  const api={rarities,skins,cases,fresh,restore,wear,draw,open,equipped,equip,skin,rarity,salePrice,sell,redeem,expectedResale,patternInfo,art,random};
   root.BOUFFE_PLATES=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);
