@@ -2,11 +2,11 @@
 (function (root) {
   'use strict';
   const rarities = [
-    { id: 'mil-spec', name: 'Mil-Spec', color: '#6388f5', rank: 0 },
-    { id: 'restricted', name: 'Restricted', color: '#a480f5', rank: 1 },
-    { id: 'classified', name: 'Classified', color: '#df76c9', rank: 2 },
-    { id: 'covert', name: 'Covert', color: '#f17673', rank: 3 },
-    { id: 'extraordinary', name: 'Extraordinary', color: '#e9bd64', rank: 4 }
+    { id: 'mil-spec', name: 'Mil-Spec', color: '#6388f5', rank: 0, value:6 },
+    { id: 'restricted', name: 'Restricted', color: '#a480f5', rank: 1, value:16 },
+    { id: 'classified', name: 'Classified', color: '#df76c9', rank: 2, value:40 },
+    { id: 'covert', name: 'Covert', color: '#f17673', rank: 3, value:100 },
+    { id: 'extraordinary', name: 'Extraordinary', color: '#e9bd64', rank: 4, value:260 }
   ];
   const skins = [
     { id:'blueprint', name:'Blueprint', rarity:0, finish:'grid', colors:['#123b62','#44799d','#9cbecb'] },
@@ -22,12 +22,22 @@
     { id:'reactor', name:'Reactor Core', rarity:3, finish:'reactor', colors:['#201b26','#d63d28','#ffda83'] },
     { id:'obsidian', name:'Obsidian Bloom', rarity:3, finish:'bloom', colors:['#111822','#6a2f7d','#ffc8e1'] },
     { id:'aurora', name:'Aurora Fade', rarity:4, finish:'fade', colors:['#18375c','#c16ad7','#ffdb89'] },
-    { id:'dragon', name:'Dragonfire', rarity:4, finish:'dragon', colors:['#211b21','#b83c24','#ffda7c'] }
+    { id:'dragon', name:'Dragonfire', rarity:4, finish:'dragon', colors:['#211b21','#b83c24','#ffda7c'] },
+    { id:'urban', name:'Urban Camo', rarity:0, finish:'camo', colors:['#293839','#5a7069','#a3b0a0'] },
+    { id:'polar', name:'Polar Mesh', rarity:0, finish:'mesh', colors:['#263e5b','#82a0b6','#ebf2ee'] },
+    { id:'inkstream', name:'Inkstream', rarity:1, finish:'stream', colors:['#d3d5dc','#f9f9f3','#202937'] },
+    { id:'fuel-line', name:'Fuel Line', rarity:1, finish:'hazard', colors:['#282a28','#e8be2d','#f6e3a6'] },
+    { id:'hardened', name:'Case Hardened', rarity:2, finish:'tempered', colors:['#1e466d','#b683c5','#e6be63'] },
+    { id:'neo-noir', name:'Neo Noir', rarity:2, finish:'noir', colors:['#182335','#b8498f','#75e0e1'] },
+    { id:'orbital', name:'Orbital', rarity:3, finish:'orbital', colors:['#252e37','#f0f0e6','#f58231'] },
+    { id:'neon-beast', name:'Neon Beast', rarity:3, finish:'beast', colors:['#16354e','#7e4ab9','#f687be'] },
+    { id:'doppler', name:'Doppler', rarity:4, finish:'doppler', colors:['#15162d','#5238b2','#e761a3'] },
+    { id:'tiger-fang', name:'Tiger Fang', rarity:4, finish:'tiger', colors:['#201c1c','#efa52e','#ffdb71'] }
   ];
   const cases = [
     { id:'service', name:'Service Case', subtitle:'The everyday collection.', price:12, color:'#83b5e6', weights:[65,25,8,1.8,.2] },
-    { id:'after-hours', name:'After Hours', subtitle:'A different kind of night shift.', price:30, color:'#b49aed', weights:[40,35,19,5,1] },
-    { id:'reserve', name:'Chef’s Reserve', subtitle:'The top shelf of the collection.', price:60, color:'#e4bc70', weights:[15,38,32,12,3] }
+    { id:'after-hours', name:'After Hours', subtitle:'A different kind of night shift.', price:30, color:'#b49aed', weights:[44,35,16,4.2,.8] },
+    { id:'reserve', name:'Chef’s Reserve', subtitle:'The top shelf of the collection.', price:60, color:'#e4bc70', weights:[21,38,28,10.5,2.5] }
   ];
   const skinById = new Map(skins.map(s => [s.id,s]));
   const caseById = new Map(cases.map(c => [c.id,c]));
@@ -37,10 +47,11 @@
     if (root.crypto?.getRandomValues) { const a=new Uint32Array(1);root.crypto.getRandomValues(a);return a[0]/4294967296; }
     return Math.random();
   }
-  function fresh(tips=0) { return { balance:amount(tips), inventory:[], equipped:null, opened:0 }; }
+  function fresh(tips=0) { return { balance:amount(tips), inventory:[], equipped:null, opened:0, soldTips:0, soldCount:0 }; }
   function restore(data,lifetime=0) {
     if (!data || typeof data!=='object') return fresh(lifetime);
-    const state=fresh();state.balance=Math.min(amount(data.balance),amount(lifetime));
+    const state=fresh();state.soldTips=amount(data.soldTips);state.soldCount=amount(data.soldCount);
+    state.balance=Math.min(amount(data.balance),amount(lifetime)+state.soldTips);
     const seen=new Set();
     if (Array.isArray(data.inventory)) for (const item of data.inventory) {
       if (!item || typeof item.uid!=='string' || !/^[a-zA-Z0-9-]{1,90}$/.test(item.uid) || seen.has(item.uid) || !skinById.has(item.skin) || !Number.isFinite(item.float) || item.float<0 || item.float>1) continue;
@@ -80,12 +91,52 @@
   function equip(state,uid) { if(uid!==null&&!state.inventory.some(x=>x.uid===uid))return false;state.equipped=uid;return true; }
   function skin(item) { return skinById.get(item?.skin)||null; }
   function rarity(item) { const s=skin(item);return s?rarities[s.rarity]:null; }
+  function salePrice(item){const r=rarity(item);return r&&Number.isFinite(item.float)?Math.round(r.value*(1-clamp(item.float))):0;}
+  function sell(state,uid){
+    const index=state.inventory.findIndex(item=>item.uid===uid);
+    if(index<0)return {ok:false,error:'That plate is no longer in your inventory.'};
+    const item=state.inventory[index],price=salePrice(item);
+    state.inventory.splice(index,1);if(state.equipped===uid)state.equipped=null;
+    state.balance+=price;state.soldTips=amount(state.soldTips)+price;state.soldCount=amount(state.soldCount)+1;
+    return {ok:true,item,price};
+  }
+  // Uniform floats have mean 0.5; rounding integer rarity values preserves that mean.
+  function expectedResale(caseId){const box=caseById.get(caseId);return box?box.weights.reduce((n,p,i)=>n+p/100*rarities[i].value/2,0):0;}
   function seeded(seed) { let n=seed>>>0;return ()=>{n=(1664525*n+1013904223)>>>0;return n/4294967296;}; }
   function art(item,prefix='plate') {
     const s=skin(item);if(!s)return '';
     const id=String(prefix).replace(/[^a-zA-Z0-9-]/g,''), rng=seeded(item.seed||1), [a,b,c]=s.colors;
     const v=clamp(item.float||0), rotation=(item.seed||1)%360, gold=s.rarity===4;
     let pattern='';
+    if(s.finish==='camo')for(let n=0;n<38;n++){const x=rng()*220,y=rng()*220;pattern+=`<path d="M${x} ${y}h${10+rng()*35}v16h-10v17h-23v-14h-14v-11Z" fill="${n%3?b:c}" opacity="${.3+rng()*.45}"/>`;}
+    if(s.finish==='mesh')for(let n=-110;n<330;n+=16)pattern+=`<path d="M${n} 0l220 220M${n} 0l-220 220" stroke="${c}" stroke-width="1.3" opacity=".7"/>`;
+    if(s.finish==='stream'){
+      pattern+=`<path d="M0 35h220v150H0Z" fill="${b}"/><path d="M20 45h70v17H20m125 90h65v18h-65" fill="${c}"/>`;
+      for(let n=0;n<45;n++){const x=Math.floor(rng()*26)*9,y=Math.floor(rng()*26)*9;pattern+=`<rect x="${x}" y="${y}" width="${3+Math.floor(rng()*3)*4}" height="4" fill="${n%5?'#263244':'#df9be1'}" opacity=".65"/>`;}
+      pattern+=`<path d="m110 65 32 45-32 45-32-45Z" fill="none" stroke="${c}" stroke-width="5"/><path d="M105 95h10v30h-10Z" fill="${c}"/>`;
+    }
+    if(s.finish==='hazard'){
+      pattern+=`<path d="M0 30h220v160H0Z" fill="${b}"/>`;
+      for(let n=-110;n<330;n+=38)pattern+=`<path d="M${n} 0l90 220h17L${n+17} 0Z" fill="${a}"/>`;
+      pattern+=`<circle cx="110" cy="110" r="47" fill="${a}" stroke="${c}" stroke-width="3"/><path d="M90 137V86h29v51m-29-32h29m0-19 15 16v27q0 8 8 8" fill="none" stroke="${b}" stroke-width="6" stroke-linejoin="round"/>`;
+    }
+    if(s.finish==='tempered')for(let n=0;n<32;n++){const x=rng()*240,y=rng()*240;pattern+=`<ellipse cx="${x}" cy="${y}" rx="${20+rng()*45}" ry="${10+rng()*34}" fill="${['#248ec2','#9d6bbb','#d6b46b','#dae6dc'][n%4]}" opacity=".65" filter="url(#${id}-blur)"/>`;}
+    if(s.finish==='noir'){
+      for(let n=0;n<12;n++)pattern+=`<path d="M${n*30-40} 0l-65 220" stroke="${n%2?b:c}" stroke-width="${n%3?1:14}" opacity=".3"/>`;
+      pattern+=`<path d="M75 193q40-12 38-38l-11-13 3-20-10-4 14-25 4-34q46 1 51 44l-20 61 15 28" fill="${b}" stroke="${c}" stroke-width="2"/><path d="M113 59q-48 13-50 66l-21 38 37-16 8-23m21-31 23 3-10 8m-10 21 15 5-14 6" fill="none" stroke="${c}" stroke-width="3"/>`;
+    }
+    if(s.finish==='orbital'){
+      pattern+=`<circle cx="110" cy="110" r="84" fill="${b}"/><path d="M-5 35h140l-40 49H-5m230 90H86l40-49h99" fill="${a}"/><path d="M-5 65h105v14H-5m230 80h-104v-14h104" fill="${c}"/><circle cx="110" cy="110" r="36" fill="${a}" stroke="${c}" stroke-width="4"/><path d="m110 83 23 40H87Z" fill="none" stroke="${b}" stroke-width="4"/><path d="M21 116h32m114-14h32" stroke="${a}" stroke-width="4"/>`;
+    }
+    if(s.finish==='beast'){
+      for(let n=0;n<20;n++)pattern+=`<path d="M${rng()*220} 230q${-60+rng()*120}-130 ${rng()*100-50}-240" fill="none" stroke="${n%2?b:c}" stroke-width="${4+rng()*7}" opacity=".55"/>`;
+      pattern+=`<path d="M46 95 70 49l34 18 42-22 34 51-16 61-53 32-51-28Z" fill="${a}" stroke="${c}" stroke-width="4"/><path d="m67 93 32 7-23 13m47-13 30-12-10 26" fill="${c}"/><path d="M72 134q38 31 73-4l-12 35-22 12-25-14Z" fill="${b}"/><path d="m75 138 12 18 5-10 13 22 10-20 9 14 17-26" fill="#f9ebcd"/>`;
+    }
+    if(s.finish==='doppler')for(let n=0;n<12;n++)pattern+=`<path d="M-40 ${n*25}Q${240-rng()*70} ${-70+rng()*120} ${80+rng()*120} 260L260 260V-30Z" fill="${n%3===0?c:n%3===1?b:a}" opacity=".5"/>`;
+    if(s.finish==='tiger'){
+      pattern+=`<circle cx="110" cy="110" r="94" fill="${b}"/>`;
+      for(let n=-1;n<9;n++)pattern+=`<path d="M-10 ${n*34}q90-24 125-6l-45 18 60 9-140 1Zm240 ${n*34+14}q-90-24-125-6l45 18-60 9 140 1Z" fill="${a}"/>`;
+    }
     if(s.finish==='grid')for(let n=-100;n<330;n+=22)pattern+=`<path d="M${n} 0v220M0 ${n}h220"/>`;
     if(s.finish==='speckle')for(let n=0;n<160;n++)pattern+=`<circle cx="${rng()*220}" cy="${rng()*220}" r="${.5+rng()*2.7}" fill="${n%3?c:b}" opacity="${.15+rng()*.5}"/>`;
     if(s.finish==='carbon')for(let y=0;y<240;y+=16)for(let x=0;x<240;x+=16)pattern+=`<path d="M${x} ${y}l12 12m-12-7 12 12" stroke="${(x+y)%32?b:c}" opacity=".4" stroke-width="4"/>`;
@@ -119,6 +170,6 @@
     }
     return `<svg class="skin-art skin-tier-${s.rarity}" viewBox="0 0 220 220" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs><radialGradient id="${id}-base" cx="35%" cy="25%"><stop stop-color="${b}"/><stop offset="1" stop-color="${a}"/></radialGradient><radialGradient id="${id}-light"><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset=".85" stop-color="#fff" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient><linearGradient id="${id}-rim" x2="1" y2="1"><stop stop-color="${gold?'#fff0b7':c}"/><stop offset=".35" stop-color="${gold?'#ad701c':a}"/><stop offset=".68" stop-color="${gold?'#fbd47e':c}"/><stop offset="1" stop-color="${gold?'#86541a':b}"/></linearGradient><linearGradient id="${id}-rainbow" x2="1" y2="1"><stop stop-color="#4cced0"/><stop offset=".35" stop-color="#7282ed"/><stop offset=".65" stop-color="#ef79bc"/><stop offset="1" stop-color="#ffdb85"/></linearGradient><clipPath id="${id}-clip"><circle cx="110" cy="110" r="90"/></clipPath><filter id="${id}-blur"><feGaussianBlur stdDeviation="12"/></filter></defs><circle cx="110" cy="112" r="104" fill="#000" opacity=".22"/><circle cx="110" cy="108" r="103" fill="url(#${id}-rim)"/><circle cx="110" cy="108" r="97" fill="url(#${id}-base)"/><g clip-path="url(#${id}-clip)" transform="rotate(${rotation} 110 110)" fill="none" stroke="${c}" stroke-width=".7" stroke-opacity=".55">${pattern}</g><circle cx="110" cy="110" r="81" fill="none" stroke="${c}" stroke-opacity=".6" stroke-width="1"/><g clip-path="url(#${id}-clip)">${scratches}</g><circle cx="110" cy="108" r="97" fill="url(#${id}-light)"/><circle cx="110" cy="108" r="100" fill="none" stroke="#fff" stroke-opacity="${.32-v*.2}" stroke-width=".8"/>${gold?'<path d="m110 8 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="#fff4c8"/>':''}</svg>`;
   }
-  const api={rarities,skins,cases,fresh,restore,wear,draw,open,equipped,equip,skin,rarity,art,random};
+  const api={rarities,skins,cases,fresh,restore,wear,draw,open,equipped,equip,skin,rarity,salePrice,sell,expectedResale,art,random};
   root.BOUFFE_PLATES=api;if(typeof module!=='undefined')module.exports=api;
 })(globalThis);

@@ -41,7 +41,7 @@
     }
     const patience = 26000 + (size - 1) * 6500;
     s.order = { ids, kind: restock ? 'restock' : 'plate', target: restock ? (target === 'en' ? 'fr' : 'en') : target,
-      choices: E.shuffle(choices, s.random), errors: [], hint: false, patience, maxPatience: patience,
+      choices: E.shuffle(choices, s.random), errors: [], hint: false, patience, maxPatience: patience, elapsed:0,
       table: 1 + Math.floor(s.random() * 8) };
     s.seen.push(...ids);
   }
@@ -59,7 +59,9 @@
       s.bestStreak = Math.max(s.bestStreak, s.streak);
       const multiplier = Math.min(4, 1 + Math.floor(Math.max(0, s.streak - 1) / 3));
       const earned = clean ? o.ids.length * 100 * multiplier + (s.timed ? Math.ceil(o.patience / 1000) * 2 : 0) : o.ids.length * 40;
-      const tip = clean ? o.ids.length * 3 * multiplier : 1;
+      // Speed affects tips; streaks multiply points only. Practice keeps its relaxed clock.
+      const speedTip=Math.max(1,Math.ceil(5*(1-Math.min(1,o.elapsed/o.maxPatience))));
+      const tip=clean?speedTip:1;
       s.score += earned; s.tips += tip;
       s.feedback = { type: 'served', clean, earned, tip, reason };
     } else {
@@ -108,7 +110,9 @@
     s.phase = 'finished'; s.paused = false;
   }
   function tick(s, delta) {
-    if (s.phase !== 'active' || s.paused || !s.timed || !Number.isFinite(delta) || delta <= 0) return;
+    if (s.phase !== 'active' || s.paused || !Number.isFinite(delta) || delta <= 0) return;
+    s.order.elapsed+=delta;
+    if(!s.timed)return;
     s.remaining = Math.max(0, s.remaining - delta);
     s.order.patience = Math.max(0, s.order.patience - delta);
     if (s.remaining === 0) finish(s);

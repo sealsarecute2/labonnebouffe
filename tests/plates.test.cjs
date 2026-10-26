@@ -5,7 +5,7 @@ const rolls=(...values)=>{let i=0;return ()=>values[i++%values.length];};
 test('case odds add to 100 and every tier has a finish',()=>{
   for(const c of P.cases){assert.equal(c.weights.reduce((a,b)=>a+b,0),100);assert.ok(c.price>0);}
   for(let n=0;n<5;n++)assert.ok(P.skins.some(s=>s.rarity===n));
-  assert.equal(new Set(P.skins.map(s=>s.id)).size,14);
+  assert.equal(new Set(P.skins.map(s=>s.id)).size,24);
 });
 test('existing tips migrate once and a spent balance never refills on reload',()=>{
   const state=P.restore(undefined,50);assert.equal(state.balance,50);
@@ -62,4 +62,36 @@ test('every skin draws a deterministic plate and wear changes its appearance',()
     assert.notEqual(a,P.art({...item,seed:340},'test'));
     assert.ok(!a.includes('NaN'));
   }
+});
+test('resale rewards a lower float using rounded rarity value times remaining condition',()=>{
+  for(const s of P.skins)for(const value of [0,.001,.036,.15,.381,.729,1]){
+    assert.equal(P.salePrice({skin:s.id,float:value}),Math.round(P.rarities[s.rarity].value*(1-value)));
+  }
+});
+test('selling grants tips once, removes the instance and restores the original if equipped',()=>{
+  const s=P.fresh(12),item=P.open(s,'service',rolls(.9999,.1,.2,.5),1).item;
+  P.equip(s,item.uid);
+  const r=P.sell(s,item.uid);assert.equal(r.ok,true);assert.equal(r.price,208);
+  assert.equal(s.balance,208);assert.equal(s.inventory.length,0);assert.equal(s.equipped,null);
+  assert.equal(s.soldTips,208);assert.equal(s.soldCount,1);
+  const reloaded=P.restore(JSON.parse(JSON.stringify(s)),12);
+  assert.equal(reloaded.balance,208);assert.equal(reloaded.soldTips,208);
+  const before=JSON.stringify(reloaded);assert.equal(P.sell(reloaded,item.uid).ok,false);
+  assert.equal(JSON.stringify(reloaded),before);assert.equal(P.sell(reloaded,'classic').ok,false);
+});
+test('selling another item preserves the equipped plate, and a zero-value sale is valid',()=>{
+  const s=P.fresh(24),a=P.open(s,'service',rolls(.1,.1,1,.1),1).item,b=P.open(s,'service',rolls(.1,.1,.9,.9),2).item;
+  P.equip(s,b.uid);const r=P.sell(s,a.uid);
+  assert.equal(r.ok,true);assert.equal(r.price,0);assert.equal(s.equipped,b.uid);assert.equal(s.inventory.length,1);
+});
+test('premium high-rarity chances are reduced and every case has a net resale loss',()=>{
+  const old=[[65,25,8,1.8,.2],[40,35,19,5,1],[15,38,32,12,3]];
+  P.cases.forEach((box,index)=>{
+    if(index){assert.ok(box.weights[3]<old[index][3]);assert.ok(box.weights[4]<old[index][4]);}
+    assert.ok(P.expectedResale(box.id)<box.price);
+    let seed=123456789;
+    const rng=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
+    let sum=0;for(let i=0;i<30000;i++)sum+=P.salePrice(P.draw(box.id,rng));
+    assert.ok(sum/30000<box.price);assert.ok(Math.abs(sum/30000-P.expectedResale(box.id))<.5);
+  });
 });

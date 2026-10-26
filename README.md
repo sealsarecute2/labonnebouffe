@@ -21,7 +21,7 @@ Choose the **Order Up!** tab beside the study modes. Read each order ticket, sel
 - **2-minute rush:** serve as many orders as you can before the shift ends. Table patience runs down while you work.
 - **No pressure:** play without a clock or patience limit, and finish whenever you like.
 - Choose French orders with English ingredients, or switch to English orders with French ingredients. Restocking practises the other direction.
-- Clean orders build a streak and a points multiplier. Earn tips to unlock café decorations, and beat your personal best for each menu and translation direction.
+- Clean orders build a streak and a points multiplier. Faster clean orders earn **$1–$5 in tips per order**; an order completed with help earns $1. Pauses and feedback do not count toward your service time. Earn tips to unlock café decorations, and beat your personal best for each menu and translation direction.
 - Missed words return in later tickets and join your normal study review. Using a translation or correcting an answer keeps that word in review.
 - **Pause** whenever you need. The game also pauses when you switch tabs or leave the window. The clock stops while you read corrections and feedback.
 
@@ -98,4 +98,3 @@ No account is needed. Your progress, saved words, settings, and current round ar
 Progress does not sync between browsers or devices. Clearing browser data or using private browsing may remove it. If browser storage is unavailable, you can still study during the current visit.
 
 To start fresh, open **Settings → Reset study data**. This also resets your café, tips, and game records.
-

@@ -90,3 +90,20 @@ test('clean streaks earn multipliers and misses break them', () => {
   const before=s.score;solve(s);assert.equal(s.score-before,200);assert.equal(s.streak,4);
   G.next(s);G.skip(s);assert.equal(s.streak,0);assert.equal(s.bestStreak,4);
 });
+test('faster clean orders earn more tips, capped at five regardless of items or streak',()=>{
+  const payouts=[];
+  for(const elapsed of [0,6000,12000,18000,25000]){
+    const s=G.create({},seeded());G.tick(s,elapsed);solve(s);payouts.push(s.feedback.tip);
+  }
+  assert.deepEqual(payouts,[5,4,3,2,1]);
+  const s=G.create({timed:false},seeded());
+  for(let i=0;i<24;i++){solve(s);assert.equal(s.feedback.tip,5);G.next(s);}
+  assert.equal(s.tips,120);
+});
+test('practice has no deadline while tip speed counts only active time',()=>{
+  const s=G.create({timed:false},seeded());s.paused=true;G.tick(s,99999);
+  assert.equal(s.order.elapsed,0);s.paused=false;G.tick(s,18000);solve(s);
+  assert.equal(s.feedback.tip,2);assert.equal(s.remaining,120000);
+  const elapsed=s.order.elapsed;G.tick(s,50000);assert.equal(s.order.elapsed,elapsed);
+  G.next(s);assert.equal(s.order.elapsed,0);G.hint(s);solve(s);assert.equal(s.feedback.tip,1);
+});
