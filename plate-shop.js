@@ -6,13 +6,12 @@
   const $=q=>document.querySelector(q);
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const arrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5-7 7 7 7M2 12h19"/></svg>';
-  let context=null,active=false,tab='cases',selectedCase='service',stage='browse',prize=null,inspected=null,sort='newest',timer=null,generation=0,artSerial=0,pendingSale=null,lastSale='',spinFrame=0;
+  let context=null,active=false,tab='cases',selectedCase='service',stage='browse',prize=null,inspected=null,sort='newest',timer=null,generation=0,artSerial=0,pendingSale=null,lastSale='',spinFrame=0,crackTimer=null;
   const box=()=>S.cases.find(c=>c.id===selectedCase)||S.cases[0];
   const money=n=>n.toLocaleString('en-CA');
   const art=item=>S.art(item,`shop-${++artSerial}`);
   const sample=s=>({skin:s.id,float:.035,seed:s.id==='blue-gem'?661:137+s.rarity*71});
   function soundButton(){const muted=context.state.soundMuted;return `<button class="shop-sound-toggle" data-shop-action="sound" aria-pressed="${muted}" aria-label="${muted?'Enable':'Mute'} case sounds" title="${muted?'Enable':'Mute'} case sounds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m11 5-5 4H3v6h3l5 4Z"/>${muted?'<path d="m16 9 6 6m0-6-6 6"/>':'<path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/>'}</svg></button>`;}
-  function patternDetail(item){const p=S.patternInfo(item);return p?`<div class="shop-pattern-detail"><div><span>BLUE COVERAGE</span><strong>${p.coverage}%</strong></div><div class="shop-blue-meter"><i style="width:${p.coverage}%"></i></div><p>Seed #${p.seed} · ${p.label}</p><small>Pattern controls the blue. Float controls the wear.</small></div>`:'';}
   function announce(text){const a=$('#announcer');if(a)a.textContent=text;}
   function save(){context.onChange();}
   function header(){return `<header class="plate-shop-header"><div><button class="shop-back" data-shop-action="close">${arrow}<span>Back to café</span></button><p class="shop-kicker">LA BONNE BOUFFE / THE BACK ROOM</p><h2>Plate collection<span>.</span></h2></div><div class="shop-wallet"><span>TIP BALANCE</span><strong><i aria-hidden="true">◈</i>${money(context.state.balance)}</strong><small>Earned in your kitchen.</small></div></header><div class="shop-toolbar"><div class="shop-tabs" role="group" aria-label="Plate collection sections"><button data-shop-tab="cases" aria-pressed="${tab==='cases'}">Cases</button><button data-shop-tab="inventory" aria-pressed="${tab==='inventory'}">Inventory <span>${context.state.inventory.length}</span></button></div><div class="shop-toolbar-right"><span class="shop-equipped-label">${S.equipped(context.state)?`Equipped · ${esc(S.skin(S.equipped(context.state)).name)}`:'Equipped · House porcelain'}</span>${soundButton()}</div></div>`;}
@@ -21,8 +20,7 @@
   function plateCard(item,{preview=false,reel=false}={}){
     const skin=S.skin(item),r=S.rarity(item),owned=context.state.equipped===item.uid;
     const details=preview||reel?'':`<span class="shop-item-wear">${S.wear(item.float).short}<span>${item.float.toFixed(6)}</span></span><span class="shop-item-value">Sell · ${S.salePrice(item)} tips</span>${owned?'<i class="shop-item-equipped">EQUIPPED</i>':''}`;
-    const pattern=S.patternInfo(item);
-    const content=`<div class="shop-item-art">${art(item)}</div><span class="shop-item-kind">PLATE / ${esc(r.name.toUpperCase())}</span><strong>${esc(skin.name)}</strong>${pattern?`<span class="shop-gem-tag">${pattern.coverage}% blue · #${pattern.seed}</span>`:''}${details}`;
+    const content=`<div class="shop-item-art">${art(item)}</div><span class="shop-item-kind">PLATE / ${esc(r.name.toUpperCase())}</span><strong>${esc(skin.name)}</strong>${details}`;
     return preview||reel?`<div class="shop-item ${reel?'reel-item':''}" style="--rarity:${r.color}">${content}</div>`:`<button class="shop-item ${inspected===item.uid?'is-inspected':''}" data-shop-inspect="${item.uid}" style="--rarity:${r.color}" aria-pressed="${inspected===item.uid}">${content}</button>`;
   }
   function browse(){const c=box();return `${caseCards()}<section class="shop-case-detail"><div><p class="shop-kicker">${esc(c.name.toUpperCase())} / ${S.skins.length} FINISHES</p><h3>Something for the pass.</h3><p>A fresh plate, its own pattern, and a float from 0 to 1. Equip your drops or sell them back for tips.</p></div><div class="shop-open-action"><button class="shop-primary" data-shop-action="open" ${context.state.balance<c.price?'disabled':''}>Open case <span>${c.price} tips</span></button><small>${context.state.balance<c.price?`${c.price-context.state.balance} more tips needed. Earn them in a shift.`:`${money(context.state.balance-c.price)} tips will remain.`}</small></div></section><div class="shop-odds"><span>DROP CHANCES</span>${S.rarities.map((r,i)=>`<span style="--rarity:${r.color}"><i></i>${esc(r.name)}<b>${c.weights[i]}%</b></span>`).join('')}</div><section class="shop-contents"><div class="shop-section-heading"><h3>Inside the case</h3><span>Rarity sets the finish. Float sets the wear.</span></div><div class="shop-drop-grid">${[...S.skins].sort((a,b)=>a.rarity-b.rarity).map(s=>plateCard(sample(s),{preview:true})).join('')}</div></section>`;}
@@ -36,7 +34,7 @@
   function inspect(item){
     if(!item)return `<div class="shop-inspector classic-inspector"><div class="shop-inspect-art"><div class="classic-plate"></div></div><div class="shop-inspect-copy"><p class="shop-kicker">THE ORIGINAL</p><h3>House porcelain.</h3><p>The plate that started it all. Always in your collection.</p><button class="shop-secondary" data-shop-equip="classic" ${context.state.equipped===null?'disabled':''}>${context.state.equipped===null?'Currently equipped':'Equip plate'}</button></div></div>`;
     const skin=S.skin(item),r=S.rarity(item),isEquipped=context.state.equipped===item.uid;
-    return `<div class="shop-inspector" style="--rarity:${r.color}"><div class="shop-inspect-art">${art(item)}</div><div class="shop-inspect-copy"><p class="shop-rarity">${esc(r.name.toUpperCase())} / PLATE FINISH</p><h3>${esc(skin.name)}</h3><p class="shop-condition">${S.wear(item.float).name}<span>Pattern #${item.seed}</span></p>${patternDetail(item)}${floatMeter(item)}${saleValue(item)}<div class="shop-inspect-actions"><button class="shop-primary" data-shop-equip="${item.uid}" ${isEquipped?'disabled':''}>${isEquipped?'Currently equipped':'Equip plate'}</button>${saleControl(item)}</div></div></div>`;
+    return `<div class="shop-inspector" style="--rarity:${r.color}"><div class="shop-inspect-art">${art(item)}</div><div class="shop-inspect-copy"><p class="shop-rarity">${esc(r.name.toUpperCase())} / PLATE FINISH</p><h3>${esc(skin.name)}</h3><p class="shop-condition">${S.wear(item.float).name}</p>${floatMeter(item)}${saleValue(item)}<div class="shop-inspect-actions"><button class="shop-primary" data-shop-equip="${item.uid}" ${isEquipped?'disabled':''}>${isEquipped?'Currently equipped':'Equip plate'}</button>${saleControl(item)}</div></div></div>`;
   }
   function inventory(){
     let items=[...context.state.inventory];
@@ -44,18 +42,22 @@
     const selected=context.state.inventory.find(x=>x.uid===inspected);
     return `${inspect(selected)}<div class="shop-section-heading shop-inventory-heading"><h3>Your collection <span>${items.length+1}</span></h3><label>Sort<select id="shop-sort"><option value="newest" ${sort==='newest'?'selected':''}>Newest first</option><option value="rarity" ${sort==='rarity'?'selected':''}>Rarity</option><option value="float" ${sort==='float'?'selected':''}>Lowest float</option><option value="value" ${sort==='value'?'selected':''}>Sell value</option></select></label></div><div class="shop-drop-grid shop-inventory"><button class="shop-item shop-classic-card ${inspected===null?'is-inspected':''}" data-shop-inspect="classic" aria-pressed="${inspected===null}" style="--rarity:#89939b"><div class="shop-item-art"><div class="classic-plate"></div></div><span class="shop-item-kind">PLATE / ORIGINAL</span><strong>House porcelain</strong><span class="shop-item-wear">The original</span>${context.state.equipped===null?'<i class="shop-item-equipped">EQUIPPED</i>':''}</button>${items.map(item=>plateCard(item)).join('')}</div>${!items.length?'<div class="shop-empty"><p>Your first finish is still in a case.</p><button class="shop-secondary" data-shop-tab="cases">Browse cases</button></div>':''}`;
   }
+  function cracking(){
+    const c=box();
+    return `<div class="shop-opening shop-cracking"><p class="shop-kicker">${esc(c.name.toUpperCase())}</p><h3>Something good inside.</h3><div class="case-crack-scene" style="--case-color:${c.color}" aria-hidden="true"><div class="crack-halo"></div><div class="crack-briefcase"><div class="crack-base"><div class="crack-foam"><span>${art(sample(S.skins.find(s=>s.rarity===(c.id==='reserve'?4:c.id==='after-hours'?2:0))))}</span></div><b>LA BONNE BOUFFE</b></div><div class="crack-seam"></div><div class="crack-lid"><div class="crack-lid-outside"><i class="crack-handle"></i><span class="crack-brand">LBB<span>PLATE COLLECTION</span></span><i class="crack-latch latch-left"></i><i class="crack-latch latch-right"></i></div><div class="crack-lid-inside"><span>THE BACK ROOM</span></div></div></div><div class="crack-sparks"><i></i><i></i><i></i><i></i><i></i></div></div><p class="shop-opening-caption">A little something for your next service.</p><button class="shop-secondary" data-shop-action="reveal">Skip reveal</button></div>`;
+  }
   function opening(){
     const c=box(),items=Array.from({length:32},()=>S.draw(c.id));items[25]=prize;
     return `<div class="shop-opening"><p class="shop-kicker">${esc(c.name.toUpperCase())}</p><h3>Unboxing your plate.</h3><div class="case-reel"><i class="reel-pointer top"></i><div class="reel-window"><div class="reel-track">${items.map(item=>plateCard(item,{reel:true})).join('')}</div></div><i class="reel-pointer bottom"></i></div><p class="shop-opening-caption">Every finish has its own float and pattern.</p><button class="shop-secondary" data-shop-action="reveal">Skip reveal</button></div>`;
   }
-  function result(){const r=S.rarity(prize),skin=S.skin(prize);return `<div class="shop-result" style="--rarity:${r.color}"><p class="shop-kicker">ADDED TO YOUR INVENTORY</p><div class="shop-result-art">${art(prize)}</div><span class="shop-rarity">${esc(r.name.toUpperCase())}</span><h3>${esc(skin.name)}</h3><p class="shop-condition">${S.wear(prize.float).name}<span>Pattern #${prize.seed}</span></p>${patternDetail(prize)}${floatMeter(prize)}<div class="shop-result-actions"><button class="shop-primary" data-shop-action="equip-result">Equip plate</button><button class="shop-secondary" data-shop-action="keep">View in inventory</button></div><div class="shop-result-sale">${saleValue(prize)}${saleControl(prize)}</div><button class="shop-text" data-shop-action="cases">Back to cases</button></div>`;}
+  function result(){const r=S.rarity(prize),skin=S.skin(prize);return `<div class="shop-result" style="--rarity:${r.color}"><p class="shop-kicker">ADDED TO YOUR INVENTORY</p><div class="shop-result-art">${art(prize)}</div><span class="shop-rarity">${esc(r.name.toUpperCase())}</span><h3>${esc(skin.name)}</h3><p class="shop-condition">${S.wear(prize.float).name}</p>${floatMeter(prize)}<div class="shop-result-actions"><button class="shop-primary" data-shop-action="equip-result">Equip plate</button><button class="shop-secondary" data-shop-action="keep">View in inventory</button></div><div class="shop-result-sale">${saleValue(prize)}${saleControl(prize)}</div><button class="shop-text" data-shop-action="cases">Back to cases</button></div>`;}
   function render(){
     if(!active)return;
-    context.host.innerHTML=`<section class="plate-shop" aria-label="Plate collection">${header()}${lastSale?`<p class="shop-sale-notice" role="status">${esc(lastSale)}</p>`:''}<div class="shop-body">${stage==='opening'?opening():stage==='result'?result():tab==='cases'?browse():inventory()}</div><footer class="shop-footer"><span>YOUR KITCHEN. YOUR COLLECTION.</span><span>Plates change the look. Your study progress stays the same.</span></footer></section>`;
+    context.host.innerHTML=`<section class="plate-shop" aria-label="Plate collection">${header()}${lastSale?`<p class="shop-sale-notice" role="status">${esc(lastSale)}</p>`:''}<div class="shop-body">${stage==='cracking'?cracking():stage==='opening'?opening():stage==='result'?result():tab==='cases'?browse():inventory()}</div><footer class="shop-footer"><span>YOUR KITCHEN. YOUR COLLECTION.</span><span>Plates change the look. Your study progress stays the same.</span></footer></section>`;
   }
   function reveal(){
-    if(!active||stage!=='opening')return;
-    clearTimeout(timer);stopRoll();audio.stop();if(!document.hidden)audio.reveal(S.skin(prize).rarity);stage='result';render();
+    if(!active||!['cracking','opening'].includes(stage))return;
+    clearOpening();if(!document.hidden)audio.reveal(S.skin(prize).rarity);stage='result';render();
     $('[data-shop-action="equip-result"]')?.focus({preventScroll:true});
     announce(`${S.rarity(prize).name} plate: ${S.skin(prize).name}. ${S.wear(prize.float).name}. Float ${prize.float.toFixed(6)}. Added to inventory.`);
   }
@@ -63,10 +65,18 @@
     if(!active||stage!=='browse'||tab!=='cases')return;
     const transaction=S.open(context.state,selectedCase);
     if(!transaction.ok){announce(transaction.error);return;}
-    audio.setMuted(context.state.soundMuted);audio.open();
-    prize=transaction.item;save();stage='opening';pendingSale=null;lastSale='';const token=++generation;render();
+    audio.setMuted(context.state.soundMuted);
+    prize=transaction.item;save();stage='cracking';pendingSale=null;lastSale='';const token=++generation;render();
     const reduce=root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     if(reduce){reveal();return;}
+    audio.open();
+    crackTimer=setTimeout(()=>{if(active&&token===generation&&stage==='cracking'&&!document.hidden)audio.crack();},390);
+    timer=setTimeout(()=>beginReel(token),1450);
+    announce('Opening case. Your plate has been saved to your inventory.');
+  }
+  function beginReel(token){
+    if(!active||token!==generation||stage!=='cracking')return;
+    stage='opening';render();
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       if(!active||token!==generation||stage!=='opening')return;
       const rail=$('.reel-track'),window=$('.reel-window'),cell=$('.reel-item');
@@ -77,8 +87,8 @@
       watchRoll(token,rail,window,step);
       timer=setTimeout(()=>{if(token===generation)reveal();},4300);
     }));
-    announce('Opening case. Your plate has been saved to your inventory.');
   }
+  function clearOpening(){clearTimeout(timer);clearTimeout(crackTimer);timer=null;crackTimer=null;stopRoll();audio.stop();}
   function stopRoll(){cancelAnimationFrame(spinFrame);spinFrame=0;}
   function watchRoll(token,rail,viewport,step){
     stopRoll();let previous=-1;
@@ -91,7 +101,7 @@
     }
     spinFrame=requestAnimationFrame(frame);
   }
-  function dismiss(notify=true){if(!active)return;clearTimeout(timer);stopRoll();audio.stop();generation++;active=false;if(notify)context.onClose();}
+  function dismiss(notify=true){if(!active)return;clearOpening();generation++;active=false;if(notify)context.onClose();}
   function open(options){
     dismiss(false);context=options;active=true;tab='cases';stage='browse';prize=null;inspected=context.state.equipped;pendingSale=null;lastSale='';
     audio.setMuted(context.state.soundMuted);
@@ -100,7 +110,7 @@
   document.addEventListener('click',e=>{
     if(!active)return;
     const b=e.target.closest('button');if(!b||b.disabled)return;
-    if(b.dataset.shopTab){clearTimeout(timer);stopRoll();audio.stop();generation++;tab=b.dataset.shopTab;stage='browse';pendingSale=null;render();return;}
+    if(b.dataset.shopTab){clearOpening();generation++;tab=b.dataset.shopTab;stage='browse';pendingSale=null;render();return;}
     if(b.dataset.shopCase){selectedCase=b.dataset.shopCase;render();return;}
     if(b.dataset.shopInspect){inspected=b.dataset.shopInspect==='classic'?null:b.dataset.shopInspect;pendingSale=null;render();return;}
     if(b.dataset.shopRequestSell){
@@ -131,6 +141,6 @@
   });
   document.addEventListener('change',e=>{if(active&&e.target.id==='shop-sort'){sort=e.target.value;render();}});
   document.addEventListener('keydown',e=>{if(active&&e.key==='Escape'&&!document.querySelector('dialog[open]')){e.preventDefault();dismiss();}});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopRoll();audio.stop();}});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(active&&['cracking','opening'].includes(stage))reveal();else{stopRoll();audio.stop();}}});
   root.BOUFFE_PLATE_SHOP={open,dismiss,isOpen:()=>active,soundStatus:()=>audio.status()};
 })(globalThis);

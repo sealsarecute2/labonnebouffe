@@ -27,13 +27,13 @@
     { id:'polar', name:'Polar Mesh', rarity:0, finish:'mesh', colors:['#263e5b','#82a0b6','#ebf2ee'] },
     { id:'inkstream', name:'Inkstream', rarity:1, finish:'stream', colors:['#d3d5dc','#f9f9f3','#202937'] },
     { id:'fuel-line', name:'Fuel Line', rarity:1, finish:'hazard', colors:['#282a28','#e8be2d','#f6e3a6'] },
-    { id:'hardened', name:'Case Hardened', rarity:2, finish:'tempered', colors:['#1e466d','#b683c5','#e6be63'] },
+    { id:'hardened', name:'Heat Treated', rarity:2, finish:'tempered', colors:['#1e466d','#b683c5','#e6be63'] },
     { id:'neo-noir', name:'Neo Noir', rarity:2, finish:'noir', colors:['#182335','#b8498f','#75e0e1'] },
     { id:'orbital', name:'Orbital', rarity:3, finish:'orbital', colors:['#252e37','#f0f0e6','#f58231'] },
     { id:'neon-beast', name:'Neon Beast', rarity:3, finish:'beast', colors:['#16354e','#7e4ab9','#f687be'] },
     { id:'doppler', name:'Doppler', rarity:4, finish:'doppler', colors:['#15162d','#5238b2','#e761a3'] },
     { id:'tiger-fang', name:'Tiger Fang', rarity:4, finish:'tiger', colors:['#201c1c','#efa52e','#ffdb71'] },
-    { id:'blue-gem', name:'Blue Gem', rarity:3, finish:'blue-gem', colors:['#704825','#b89b59','#58c6f4'] }
+    { id:'blue-gem', name:'Case Hardened', rarity:3, finish:'blue-gem', colors:['#704825','#b89b59','#58c6f4'] }
   ];
   const cases = [
     { id:'service', name:'Service Case', subtitle:'The everyday collection.', price:12, color:'#83b5e6', weights:[65,25,8,1.8,.2] },

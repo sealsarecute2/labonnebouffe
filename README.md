@@ -25,6 +25,8 @@ Choose the **Order Up!** tab beside the study modes. Read each order ticket, sel
 - Missed words return in later tickets and join your normal study review. Using a translation or correcting an answer keeps that word in review.
 - **Pause** whenever you need. The game also pauses when you switch tabs or leave the window. The clock stops while you read corrections and feedback.
 
+Earn **lifetime tips** to unlock ten café rewards, from a potted plant at $25 to the signature flower arrangement at $5,000. Plants, pendant and fairy lights, flowers, linen, candlelight, and silver or gold utensils appear around your plate during service. Open **Café rewards** under your café to see the next milestone. Spending tips does not remove decorations.
+
 Use **1–9** to select ingredients, **Enter** to serve, and **Esc** to pause. On a phone, use the on-screen controls. French articles and accents follow the same rules as typing practice.
 
 The café menu uses the food and drink terms from the deck. Continue using the study modes for the full 130-word vocabulary, including descriptions and table expressions.

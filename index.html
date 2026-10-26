@@ -68,8 +68,8 @@
 .scene-plate:before{content:"";position:absolute;inset:6px;border:1px solid #c2bba4;border-radius:50%}.scene-plate span{font-size:55px;position:relative;top:-17px;filter:drop-shadow(0 4px 2px #0002)}.scene-drink{position:absolute;bottom:65px;left:229px;font-size:65px;z-index:6;transform:rotate(-8deg);filter:drop-shadow(0 6px 3px #0002)}
 .scene-stamp{position:absolute;top:188px;left:161px;transform:rotate(-12deg);font-size:7px;letter-spacing:1.3px;text-align:center;border:1px solid #e7d4ac6b;border-radius:50%;width:60px;height:60px;display:grid;place-content:center;line-height:1.8}
 .scene-caption{position:absolute;bottom:27px;left:0;right:0;text-align:center;color:#29382e;z-index:7;font-size:9px;font-weight:650;letter-spacing:1px;text-transform:uppercase}.scene-caption i{display:inline-block;width:4px;height:4px;background:#315a40;border-radius:50%;vertical-align:middle;margin-right:8px}
-.cafe-lamp{position:absolute;top:20px;width:1px;height:70px;background:#f5e4bd66;z-index:4}.lamp-one{left:52px}.lamp-two{right:50px}.cafe-lamp:after{content:"";position:absolute;bottom:-12px;left:-16px;width:33px;height:17px;border-radius:22px 22px 0 0;background:#d6ae64;box-shadow:0 13px 28px #f8d27b22}.cafe-level-1 .cafe-lamp,.cafe-level-1 .cafe-plant{visibility:hidden}
-.cafe-plant{position:absolute;bottom:91px;right:20px;z-index:6;width:30px;height:55px}.cafe-plant b{position:absolute;bottom:0;left:2px;width:26px;height:26px;background:#cb7950;border-radius:2px 2px 8px 8px}.cafe-plant i{position:absolute;bottom:23px;left:12px;width:11px;height:34px;background:#719675;border-radius:90% 0 90% 0;transform:rotate(-30deg)}.cafe-plant i:nth-child(2){transform:rotate(30deg);left:16px;bottom:20px}.cafe-plant i:nth-child(3){transform:rotate(-60deg);bottom:17px;left:8px}.cafe-level-3 .cafe-sign>span:last-child{background:#dfc18b;color:#23483d}
+.cafe-lamp{position:absolute;top:20px;width:1px;height:70px;background:#f5e4bd66;z-index:4}.lamp-one{left:52px}.lamp-two{right:50px}.cafe-lamp:after{content:"";position:absolute;bottom:-12px;left:-16px;width:33px;height:17px;border-radius:22px 22px 0 0;background:#d6ae64;box-shadow:0 13px 28px #f8d27b22}.cafe-scene:not([data-cafe-rewards~=lights]) .cafe-lamp,.cafe-scene:not([data-cafe-rewards~=plants]) .cafe-plant{visibility:hidden}
+.cafe-plant{position:absolute;bottom:91px;right:20px;z-index:6;width:30px;height:55px}.cafe-plant b{position:absolute;bottom:0;left:2px;width:26px;height:26px;background:#cb7950;border-radius:2px 2px 8px 8px}.cafe-plant i{position:absolute;bottom:23px;left:12px;width:11px;height:34px;background:#719675;border-radius:90% 0 90% 0;transform:rotate(-30deg)}.cafe-plant i:nth-child(2){transform:rotate(30deg);left:16px;bottom:20px}.cafe-plant i:nth-child(3){transform:rotate(-60deg);bottom:17px;left:8px}.cafe-scene[data-cafe-rewards~=utensils] .cafe-sign>span:last-child{background:#dfc18b;color:#23483d}
 .cafe-profile{display:flex;align-items:center;justify-content:space-between;padding:22px 0 13px;gap:16px}.cafe-profile>div>strong{display:block;font-size:14px;font-weight:550;margin-top:5px}.cafe-profile .game-eyebrow{font-size:8px;letter-spacing:1.3px}.cafe-tips{text-align:right}.cafe-tips>span{font-size:10px;color:var(--secondary)}.cafe-profile .cafe-tips>strong{font-size:22px;letter-spacing:-1px;margin:0}
 .cafe-upgrade{font-size:10px;color:var(--secondary)}.cafe-upgrade>div{height:3px;background:var(--game-border);border-radius:3px;margin-top:10px;overflow:hidden}.cafe-upgrade i{display:block;height:100%;background:var(--game-accent)}
 .game-how{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;border-top:1px solid var(--line);padding:25px 0}.game-how>div{display:flex;gap:13px}.game-how>div>span{font:11px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--game-accent);padding-top:2px}.game-how p{font-size:11px;line-height:1.7;color:var(--secondary);margin:0}.game-how strong{display:block;color:var(--text);font-weight:550}
@@ -95,6 +95,12 @@
 /* Keep the full score strip and pause control on one row on a phone. */
 @media(max-width:520px){.game-metrics{display:grid;grid-template-columns:55px minmax(40px,1.2fr) minmax(28px,.8fr) minmax(34px,.9fr) 28px 28px;gap:8px}.game-clock{min-width:0}.game-combo{min-width:0;margin-left:0}.game-pause{width:28px;height:30px}.game-metric>strong{font-size:21px}.game-metric>span{font-size:6px}.game-combo>strong{font-size:20px}.game-combo i{width:6px}}
 @media(max-width:370px){.game-metrics{grid-template-columns:48px minmax(38px,1fr) minmax(24px,.7fr) minmax(28px,.7fr) 26px 27px;gap:6px}.game-metric>strong{font-size:19px}.game-pause{width:27px}.game-clock{padding-right:7px}}
+/* Lifetime-tip rewards dress the table without covering the food or controls. */
+.cafe-rewards{margin-top:18px;border-top:1px solid var(--game-border);font-size:10px;color:var(--secondary)}
+.cafe-rewards summary{display:flex;justify-content:space-between;gap:12px;cursor:pointer;padding:14px 0;list-style:none}.cafe-rewards summary::-webkit-details-marker{display:none}.cafe-rewards summary>span:first-child{font-weight:550;color:var(--text)}.cafe-rewards summary>span:first-child:before{content:"+";margin-right:9px;color:var(--game-accent)}.cafe-rewards[open] summary>span:first-child:before{content:"−"}.cafe-rewards p{font-size:10px;line-height:1.7;margin:0 0 12px}.cafe-rewards ol{list-style:none;margin:0;padding:0}.cafe-rewards li{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--game-border);font-size:10px}.cafe-rewards li strong{margin-left:auto;font-weight:500;white-space:nowrap}.reward-check{color:var(--secondary);font-size:12px}.cafe-rewards .is-unlocked{color:var(--text)}.is-unlocked .reward-check{color:var(--game-accent)}
+.table-setting{position:relative;isolation:isolate;display:grid;grid-template-columns:48px minmax(0,1fr) 48px;align-items:center;max-width:470px;margin:5px auto 13px;min-height:155px;padding-top:5px}.table-setting .game-plate{margin:0 auto;min-width:0}.table-setting:not([data-cafe-rewards]){display:block}.table-setting[data-cafe-rewards=""]{grid-template-columns:0 minmax(0,1fr) 0}.table-setting[data-cafe-rewards~=lights]{padding-top:29px}.table-setting[data-cafe-rewards~=linen]:before{content:"";position:absolute;inset:33px 13px 4px;background:repeating-linear-gradient(0deg,#ba9d6e08 0 2px,transparent 2px 5px),repeating-linear-gradient(90deg,#ba9d6e08 0 2px,transparent 2px 5px),#c6b18d15;border:1px solid #bda57e35;border-radius:6px;transform:rotate(-3deg);z-index:-1}
+.table-decor{position:relative;align-self:stretch;display:flex;flex-direction:column;justify-content:center;gap:0;pointer-events:none}.table-decor>span{display:block;width:100%;filter:drop-shadow(0 4px 2px #0001)}.table-decor svg{stroke:none;display:block;width:100%;height:auto;max-height:65px}.table-plant{margin-top:22px}.table-flowers{transform:rotate(5deg)}.table-candle{width:75%!important;align-self:flex-end;margin-top:-4px}.table-utensils{width:78%!important;align-self:center;margin-top:3px}.table-vine{position:absolute;top:0;left:-7px;max-width:40px;transform:rotate(-12deg)}.table-overhead{position:absolute;inset:0 0 auto;height:29px;pointer-events:none;z-index:2}.table-pendant{position:absolute;left:50%;top:0;width:1px;height:16px;background:#9c8667}.table-pendant:after{content:"";position:absolute;left:-16px;top:12px;width:33px;height:13px;background:#c7a36e;border-radius:20px 20px 2px 2px;box-shadow:0 14px 25px 7px #e6bd5a1f}.table-fairy-lights{position:absolute;inset:0 0 auto;display:flex;justify-content:space-between;height:14px;border-bottom:1px solid #9d886e88;border-radius:0 0 50% 50%;transform:rotate(-3deg)}.table-fairy-lights>i{width:4px;height:6px;background:#e2bf79;border-radius:50%;align-self:flex-end;box-shadow:0 0 8px 2px #e2bf7933}.table-fairy-lights>i:nth-child(3n){background:#dfaa91}.table-setting[data-cafe-rewards~=gold] .table-utensils{filter:drop-shadow(0 0 5px #d9ae5033)}.table-setting[data-cafe-rewards~=signature] .table-flowers{transform:scale(1.12) rotate(5deg)}
+@media(max-width:760px){.table-setting{grid-template-columns:33px minmax(0,1fr) 33px}.table-setting .plated-food>span{font-size:33px}.table-setting .plated-food small{font-size:8px;overflow-wrap:anywhere}.table-setting .empty-plate{font-size:10px;text-align:center}.table-setting .empty-plate small{font-size:8px}.table-decor svg{max-height:48px}.table-vine{left:-4px}.table-setting .game-plate{gap:1px}}
 
 /* Plate finishes are drawn locally. The entrance keeps the original café art. */
 .skin-art{display:block;width:100%;height:100%;fill:none;stroke:none;stroke-width:0;flex-shrink:1;overflow:visible}
@@ -137,8 +143,12 @@
 @media(max-width:520px){.shop-inspect-copy .shop-inspect-actions>.shop-primary,.shop-inspect-actions>.shop-sell-button{flex:1;width:auto;min-width:120px;padding-inline:13px}.shop-sale-value{max-width:none}.shop-sale-value>small{font-size:7px}.shop-sale-confirm button{flex:1}.shop-sale-notice{padding:11px 16px;font-size:10px}.shop-item-value{font-size:7px}.shop-result-sale{max-width:285px}.shop-inspect-actions{margin-top:18px}}
 /* Sound remains inside the secret shop; seed coverage belongs to the finish. */
 .shop-toolbar-right{display:flex;align-items:center;justify-content:flex-end;gap:14px;min-width:0}.shop-sound-toggle{display:grid;place-items:center;width:32px;height:32px;flex-shrink:0;border:1px solid #46535e;border-radius:6px;color:#c7d0d8!important}.shop-sound-toggle:hover{background:#33414d}.shop-sound-toggle svg{width:17px;height:17px}.shop-sound-toggle[aria-pressed=true]{color:#8f9da9!important;border-color:#36434e}.shop-equipped-label{min-width:0;overflow-wrap:anywhere}
-.shop-gem-tag{font:7px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.1px;color:#80ccf2;margin-top:6px;line-height:1.6}.shop-pattern-detail{width:100%;max-width:330px;margin:0 0 20px;padding:12px 0;border-block:1px solid #345166}.shop-pattern-detail>div:first-child{display:flex;justify-content:space-between;align-items:center;font:7px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:1px;color:#a3bdcf}.shop-pattern-detail strong{font-size:17px;letter-spacing:0;font-weight:500;color:#81d6ff}.shop-blue-meter{height:4px;border-radius:2px;background:#a7894e;overflow:hidden;margin:9px 0}.shop-blue-meter>i{display:block;height:100%;background:linear-gradient(90deg,#226dce,#78d8f4)}.shop-pattern-detail p{font:9px ui-monospace,SFMono-Regular,Consolas,monospace;color:#bee4f8;margin:10px 0 5px;line-height:1.5}.shop-pattern-detail>small{color:#9fafbc;font-size:8px;line-height:1.6}.shop-result .shop-pattern-detail{margin:0 auto 23px;text-align:left}.shop-result .shop-condition{margin-bottom:22px}
-@media(max-width:520px){.shop-toolbar-right{gap:8px}.shop-toolbar-right .shop-equipped-label{max-width:88px;font-size:6px}.shop-sound-toggle{width:29px;height:29px}.shop-sound-toggle svg{width:16px;height:16px}.shop-pattern-detail{max-width:none}.shop-result .shop-pattern-detail{max-width:285px}.shop-gem-tag{font-size:6px}}
+@media(max-width:520px){.shop-toolbar-right{gap:8px}.shop-toolbar-right .shop-equipped-label{max-width:88px;font-size:6px}.shop-sound-toggle{width:29px;height:29px}.shop-sound-toggle svg{width:16px;height:16px}}
+/* The case seal breaks before the roulette begins. Everything is drawn locally. */
+.shop-cracking h3{margin-bottom:5px}.case-crack-scene{height:285px;position:relative;display:grid;place-items:center;perspective:900px;overflow:hidden}.crack-briefcase{position:relative;width:255px;height:155px;transform:rotateX(22deg) rotateZ(-7deg);transform-style:preserve-3d;margin-top:70px}.crack-base{position:absolute;inset:0;border:3px solid #65717a;border-radius:9px;background:linear-gradient(140deg,#4b5b68,#202d38 65%);box-shadow:0 16px 0 -2px #17232d,0 19px 0 -2px #58616a,0 28px 28px #0008;overflow:hidden}.crack-base:before,.crack-base:after{content:"";position:absolute;inset:0 auto 0 27px;width:9px;background:#9ca6aa55}.crack-base:after{left:auto;right:27px}.crack-base>b{position:absolute;bottom:6px;left:0;right:0;font:6px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:2px;color:#abb6ba}.crack-foam{position:absolute;inset:9px 13px 20px;border-radius:5px;background:repeating-linear-gradient(45deg,#1b242d 0 3px,#242f39 3px 6px);box-shadow:inset 0 0 14px #0009;border:1px solid #101b24}.crack-foam>span{display:block;position:relative;width:115px;height:115px;margin:-4px auto;transform:rotate(10deg)}.crack-lid{position:absolute;inset:0;transform-style:preserve-3d;transform-origin:50% 0;animation:briefcase-lid 1.45s cubic-bezier(.22,.65,.3,1) both}.crack-lid-outside,.crack-lid-inside{position:absolute;inset:0;border:3px solid #879196;border-radius:9px;backface-visibility:hidden}.crack-lid-outside{background:linear-gradient(145deg,#52616c,#25333f 55%,#394956);box-shadow:inset 0 0 0 4px #202e38,inset 0 0 0 6px #62717b;display:grid;place-items:center}.crack-lid-outside:before,.crack-lid-outside:after{content:"";position:absolute;top:0;bottom:0;left:28px;width:10px;background:linear-gradient(90deg,#8b959c,#c3c8c1,#7a858d);opacity:.65}.crack-lid-outside:after{left:auto;right:28px}.crack-brand{font:30px Georgia,serif;letter-spacing:4px;font-weight:bold;color:var(--case-color);text-shadow:0 1px 1px #000;border:1px solid var(--case-color);border-radius:50%;width:80px;height:80px;display:flex;flex-direction:column;justify-content:center;align-items:center}.crack-brand>span{font:4px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.7px;margin-top:4px}.crack-lid-inside{transform:rotateX(180deg);background:repeating-linear-gradient(45deg,#22313e 0 3px,#293a46 3px 6px);border-color:#78838a;box-shadow:inset 0 0 0 7px #1a2833,inset 0 0 22px #0009;display:grid;place-items:center}.crack-lid-inside>span{font:8px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:4px;color:#b7c1c7}.crack-handle{position:absolute;bottom:-21px;left:99px;width:50px;height:21px;border:6px solid #8f9a9f;border-top:0;border-radius:0 0 6px 6px}.crack-latch{position:absolute;bottom:-5px;width:17px;height:27px;border:2px solid #18242e;border-radius:3px;background:linear-gradient(90deg,#7d898e,#ced1c7,#5e6c74);transform-origin:50% 0;animation:briefcase-latch 1.45s ease both;z-index:2}.latch-left{left:25px}.latch-right{right:25px;animation-delay:.06s}.crack-seam{position:absolute;inset:0;border-radius:9px;box-shadow:0 0 35px 8px var(--case-color);animation:briefcase-light 1.45s ease both;pointer-events:none}.crack-halo{position:absolute;width:340px;height:220px;top:60px;border-radius:50%;background:radial-gradient(ellipse,var(--case-color),transparent 65%);opacity:0;animation:briefcase-halo 1.45s ease both}.crack-sparks{position:absolute;top:120px;left:50%;pointer-events:none}.crack-sparks>i{position:absolute;width:3px;height:3px;background:#f8df9f;border-radius:50%;box-shadow:0 0 7px #fbe8b8;--spark-x:-92px;--spark-y:-54px;animation:briefcase-spark 1.45s ease-out both}.crack-sparks>i:nth-child(2){--spark-x:100px;--spark-y:-64px}.crack-sparks>i:nth-child(3){--spark-x:45px;--spark-y:-100px}.crack-sparks>i:nth-child(4){--spark-x:-45px;--spark-y:-85px}.crack-sparks>i:nth-child(5){--spark-x:120px;--spark-y:20px}
+@keyframes briefcase-latch{0%,12%{transform:rotateX(0)}24%,100%{transform:rotateX(-125deg)}}@keyframes briefcase-lid{0%,25%{transform:rotateX(0)}32%{transform:rotateX(7deg)}42%{transform:rotateX(-10deg)}78%,100%{transform:rotateX(112deg)}}@keyframes briefcase-light{0%,25%{opacity:0}38%{opacity:.65}75%,100%{opacity:0}}@keyframes briefcase-halo{0%,28%{opacity:0;transform:scale(.7)}65%{opacity:.17}100%{opacity:.07;transform:scale(1.15)}}@keyframes briefcase-spark{0%,35%{opacity:0;transform:translate(0,0) scale(.2)}40%{opacity:1}100%{opacity:0;transform:translate(var(--spark-x),var(--spark-y)) scale(.4)}}
+@media(max-width:520px){.case-crack-scene{height:255px}.crack-briefcase{width:225px;height:140px}.crack-handle{left:86px}.crack-brand{width:68px;height:68px;font-size:26px}.crack-foam>span{width:100px;height:100px}.shop-cracking .shop-opening-caption{margin-top:10px}}
+@media(prefers-reduced-motion:reduce){.case-crack-scene *{animation:none!important}.crack-lid{transform:rotateX(112deg)}}
 
 </style>
 
@@ -521,13 +531,13 @@
     { id:'polar', name:'Polar Mesh', rarity:0, finish:'mesh', colors:['#263e5b','#82a0b6','#ebf2ee'] },
     { id:'inkstream', name:'Inkstream', rarity:1, finish:'stream', colors:['#d3d5dc','#f9f9f3','#202937'] },
     { id:'fuel-line', name:'Fuel Line', rarity:1, finish:'hazard', colors:['#282a28','#e8be2d','#f6e3a6'] },
-    { id:'hardened', name:'Case Hardened', rarity:2, finish:'tempered', colors:['#1e466d','#b683c5','#e6be63'] },
+    { id:'hardened', name:'Heat Treated', rarity:2, finish:'tempered', colors:['#1e466d','#b683c5','#e6be63'] },
     { id:'neo-noir', name:'Neo Noir', rarity:2, finish:'noir', colors:['#182335','#b8498f','#75e0e1'] },
     { id:'orbital', name:'Orbital', rarity:3, finish:'orbital', colors:['#252e37','#f0f0e6','#f58231'] },
     { id:'neon-beast', name:'Neon Beast', rarity:3, finish:'beast', colors:['#16354e','#7e4ab9','#f687be'] },
     { id:'doppler', name:'Doppler', rarity:4, finish:'doppler', colors:['#15162d','#5238b2','#e761a3'] },
     { id:'tiger-fang', name:'Tiger Fang', rarity:4, finish:'tiger', colors:['#201c1c','#efa52e','#ffdb71'] },
-    { id:'blue-gem', name:'Blue Gem', rarity:3, finish:'blue-gem', colors:['#704825','#b89b59','#58c6f4'] }
+    { id:'blue-gem', name:'Case Hardened', rarity:3, finish:'blue-gem', colors:['#704825','#b89b59','#58c6f4'] }
   ];
   const cases = [
     { id:'service', name:'Service Case', subtitle:'The everyday collection.', price:12, color:'#83b5e6', weights:[65,25,8,1.8,.2] },
@@ -703,12 +713,53 @@
 })(globalThis);
 
 ;
+/* Lifetime tips decorate the café, even after the spendable wallet is used. */
+(function(root){
+  'use strict';
+  const milestones=[
+    {tips:25,id:'plants',name:'Potted plant',title:'The green counter'},
+    {tips:100,id:'lights',name:'Warm pendant lights',title:'Neighbourhood favourite'},
+    {tips:200,id:'flowers',name:'Fresh flowers',title:'Freshly picked'},
+    {tips:350,id:'utensils',name:'Silver utensils',title:'House favourite'},
+    {tips:600,id:'linen',name:'Woven table linen',title:'A table for two'},
+    {tips:900,id:'candle',name:'Candlelight',title:'The candlelit café'},
+    {tips:1400,id:'vine',name:'Trailing vine',title:'The secret garden'},
+    {tips:2000,id:'fairy-lights',name:'Fairy lights',title:'Evening service'},
+    {tips:3000,id:'gold',name:'Gold utensils',title:'Golden service'},
+    {tips:5000,id:'signature',name:'Signature flower arrangement',title:'The signature café'}
+  ];
+  function progress(value){
+    const total=Number.isFinite(value)?Math.max(0,Math.floor(value)):0;
+    const unlocked=milestones.filter(m=>total>=m.tips),next=milestones[unlocked.length]||null;
+    const previous=unlocked.at(-1)?.tips||0;
+    return {total,unlocked,next,ids:unlocked.map(m=>m.id),title:unlocked.at(-1)?.title||'Corner café',
+      remaining:next?next.tips-total:0,percent:next?(total-previous)/(next.tips-previous)*100:100};
+  }
+  function art(kind){
+    let body='';
+    if(kind==='plants')body='<path d="M49 67Q29 39 35 20M48 67Q65 37 62 10M48 68Q43 40 50 27" fill="none" stroke="#50765a" stroke-width="3"/><path d="M38 43Q10 40 17 17Q41 18 38 43M56 37Q47 11 70 5Q80 26 56 37M47 54Q23 54 25 38Q45 34 47 54M53 54Q53 33 76 33Q79 54 53 54" fill="#7c9f72"/><path d="M27 63h43l-6 30H34Z" fill="#c78361"/><path d="M26 62h45v8H26Z" fill="#dfa583"/><path d="M35 75h28" stroke="#ae6b4e" stroke-width="2"/>';
+    if(kind==='flowers'||kind==='signature'){
+      const blooms=kind==='signature'?[[24,22],[70,20],[45,13],[34,40],[64,42]]:[[27,28],[66,25],[47,43]];
+      body='<path d="m45 78-18-48m20 48 20-52m-21 52 1-35" stroke="#648265" stroke-width="3"/><path d="M45 65Q20 50 22 40Q43 45 45 65M49 61Q72 45 77 49Q71 65 49 61" fill="#8aa077"/>';
+      blooms.forEach(([x,y],i)=>{body+=`<g transform="translate(${x} ${y})" fill="${i%2?'#e2ab9d':'#eac98c'}"><ellipse rx="7" ry="12"/><ellipse rx="7" ry="12" transform="rotate(60)"/><ellipse rx="7" ry="12" transform="rotate(120)"/><circle r="4" fill="#a97543"/></g>`;});
+      body+='<path d="M37 69h22l6 24H31Z" fill="#93b6ae"/><path d="M36 68h24v6H36Z" fill="#bfd3c7"/>';
+    }
+    if(kind==='candle')body='<ellipse cx="50" cy="91" rx="28" ry="5" fill="#b7a17b"/><path d="M31 86h38l-5 6H36Z" fill="#d5bd8e"/><rect x="38" y="43" width="24" height="43" rx="4" fill="#f0dcb7"/><path d="M50 43v-9" stroke="#77624a" stroke-width="2"/><path d="M50 35Q34 28 50 8Q65 28 50 35" fill="#efb85d"/><path d="M50 32Q43 27 50 17Q56 27 50 32" fill="#fff1c0"/>';
+    if(kind==='utensils'||kind==='gold')body=`<g fill="none" stroke="${kind==='gold'?'#c4a15c':'#9baeb0'}" stroke-width="4" stroke-linecap="round"><path d="M28 12v23q10 10 20 0V12M38 12v72M28 27h20M67 84V12q15 8 10 34H67"/><path d="M28 12v15M48 12v15" stroke-width="3"/></g>`;
+    if(kind==='vine')body='<path d="M20 0Q75 25 45 49T57 94" fill="none" stroke="#628361" stroke-width="3"/><g fill="#85a17b"><path d="M37 14Q35-2 58 5Q58 23 37 14M51 30Q69 14 78 32Q65 48 51 30M50 41Q25 27 24 47Q38 62 50 41M42 62Q59 44 73 59Q64 79 42 62M48 78Q24 64 26 85Q42 96 48 78"/></g>';
+    return `<svg viewBox="0 0 100 100" fill="none" aria-hidden="true">${body}</svg>`;
+  }
+  const api={milestones,progress,art};root.BOUFFE_CAFE_REWARDS=api;
+  if(typeof module!=='undefined')module.exports=api;
+})(globalThis);
+
+;
 /* Original mechanical case sounds, synthesized with Web Audio. No audio downloads. */
 (function(root){
   'use strict';
   function create(options={}){
     let context=null,master=null,muted=false,noiseBuffer=null;
-    const sources=new Set(),counts={open:0,tick:0,reveal:0};
+    const sources=new Set(),counts={open:0,crack:0,tick:0,reveal:0};
     function unlock(){
       if(muted)return false;
       try{
@@ -757,6 +808,13 @@
       tone(230,t+.04,.11,.1,'triangle',125);noise(t+.12,.12,.16,2400,'highpass');
       tone(980,t+.13,.13,.055,'sine',720);
     });}
+    function crack(delay=0){return perform('crack',now=>{
+      const t=now+delay;
+      // Seal snaps, then the heavy lid creaks back on its hinges.
+      noise(t,.07,.24,3100,'highpass');tone(130,t,.15,.18,'triangle',48);
+      noise(t+.05,.3,.11,650);tone(340,t+.06,.3,.035,'sawtooth',105);
+      noise(t+.31,.06,.12,1800);tone(74,t+.33,.2,.14,'sine',35);
+    });}
     function tick(progress=0,delay=0){return perform('tick',now=>{
       const t=now+delay,p=Math.min(1,Math.max(0,progress));
       noise(t,.016,.17-p*.035,2200-p*600,'highpass');
@@ -779,7 +837,7 @@
       if(master&&context.state!=='closed')master.gain.setTargetAtTime(muted?0:.22,context.currentTime,.008);
     }
     function status(){return {created:!!context,state:context?.state||'uninitialized',muted,active:sources.size,counts:{...counts}};}
-    return {unlock,open,tick,reveal,stop,setMuted,status};
+    return {unlock,open,crack,tick,reveal,stop,setMuted,status};
   }
   root.BOUFFE_CASE_AUDIO={create};
   if(typeof module!=='undefined')module.exports={create};
@@ -1053,13 +1111,12 @@
   const $=q=>document.querySelector(q);
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const arrow='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5-7 7 7 7M2 12h19"/></svg>';
-  let context=null,active=false,tab='cases',selectedCase='service',stage='browse',prize=null,inspected=null,sort='newest',timer=null,generation=0,artSerial=0,pendingSale=null,lastSale='',spinFrame=0;
+  let context=null,active=false,tab='cases',selectedCase='service',stage='browse',prize=null,inspected=null,sort='newest',timer=null,generation=0,artSerial=0,pendingSale=null,lastSale='',spinFrame=0,crackTimer=null;
   const box=()=>S.cases.find(c=>c.id===selectedCase)||S.cases[0];
   const money=n=>n.toLocaleString('en-CA');
   const art=item=>S.art(item,`shop-${++artSerial}`);
   const sample=s=>({skin:s.id,float:.035,seed:s.id==='blue-gem'?661:137+s.rarity*71});
   function soundButton(){const muted=context.state.soundMuted;return `<button class="shop-sound-toggle" data-shop-action="sound" aria-pressed="${muted}" aria-label="${muted?'Enable':'Mute'} case sounds" title="${muted?'Enable':'Mute'} case sounds"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m11 5-5 4H3v6h3l5 4Z"/>${muted?'<path d="m16 9 6 6m0-6-6 6"/>':'<path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/>'}</svg></button>`;}
-  function patternDetail(item){const p=S.patternInfo(item);return p?`<div class="shop-pattern-detail"><div><span>BLUE COVERAGE</span><strong>${p.coverage}%</strong></div><div class="shop-blue-meter"><i style="width:${p.coverage}%"></i></div><p>Seed #${p.seed} · ${p.label}</p><small>Pattern controls the blue. Float controls the wear.</small></div>`:'';}
   function announce(text){const a=$('#announcer');if(a)a.textContent=text;}
   function save(){context.onChange();}
   function header(){return `<header class="plate-shop-header"><div><button class="shop-back" data-shop-action="close">${arrow}<span>Back to café</span></button><p class="shop-kicker">LA BONNE BOUFFE / THE BACK ROOM</p><h2>Plate collection<span>.</span></h2></div><div class="shop-wallet"><span>TIP BALANCE</span><strong><i aria-hidden="true">◈</i>${money(context.state.balance)}</strong><small>Earned in your kitchen.</small></div></header><div class="shop-toolbar"><div class="shop-tabs" role="group" aria-label="Plate collection sections"><button data-shop-tab="cases" aria-pressed="${tab==='cases'}">Cases</button><button data-shop-tab="inventory" aria-pressed="${tab==='inventory'}">Inventory <span>${context.state.inventory.length}</span></button></div><div class="shop-toolbar-right"><span class="shop-equipped-label">${S.equipped(context.state)?`Equipped · ${esc(S.skin(S.equipped(context.state)).name)}`:'Equipped · House porcelain'}</span>${soundButton()}</div></div>`;}
@@ -1068,8 +1125,7 @@
   function plateCard(item,{preview=false,reel=false}={}){
     const skin=S.skin(item),r=S.rarity(item),owned=context.state.equipped===item.uid;
     const details=preview||reel?'':`<span class="shop-item-wear">${S.wear(item.float).short}<span>${item.float.toFixed(6)}</span></span><span class="shop-item-value">Sell · ${S.salePrice(item)} tips</span>${owned?'<i class="shop-item-equipped">EQUIPPED</i>':''}`;
-    const pattern=S.patternInfo(item);
-    const content=`<div class="shop-item-art">${art(item)}</div><span class="shop-item-kind">PLATE / ${esc(r.name.toUpperCase())}</span><strong>${esc(skin.name)}</strong>${pattern?`<span class="shop-gem-tag">${pattern.coverage}% blue · #${pattern.seed}</span>`:''}${details}`;
+    const content=`<div class="shop-item-art">${art(item)}</div><span class="shop-item-kind">PLATE / ${esc(r.name.toUpperCase())}</span><strong>${esc(skin.name)}</strong>${details}`;
     return preview||reel?`<div class="shop-item ${reel?'reel-item':''}" style="--rarity:${r.color}">${content}</div>`:`<button class="shop-item ${inspected===item.uid?'is-inspected':''}" data-shop-inspect="${item.uid}" style="--rarity:${r.color}" aria-pressed="${inspected===item.uid}">${content}</button>`;
   }
   function browse(){const c=box();return `${caseCards()}<section class="shop-case-detail"><div><p class="shop-kicker">${esc(c.name.toUpperCase())} / ${S.skins.length} FINISHES</p><h3>Something for the pass.</h3><p>A fresh plate, its own pattern, and a float from 0 to 1. Equip your drops or sell them back for tips.</p></div><div class="shop-open-action"><button class="shop-primary" data-shop-action="open" ${context.state.balance<c.price?'disabled':''}>Open case <span>${c.price} tips</span></button><small>${context.state.balance<c.price?`${c.price-context.state.balance} more tips needed. Earn them in a shift.`:`${money(context.state.balance-c.price)} tips will remain.`}</small></div></section><div class="shop-odds"><span>DROP CHANCES</span>${S.rarities.map((r,i)=>`<span style="--rarity:${r.color}"><i></i>${esc(r.name)}<b>${c.weights[i]}%</b></span>`).join('')}</div><section class="shop-contents"><div class="shop-section-heading"><h3>Inside the case</h3><span>Rarity sets the finish. Float sets the wear.</span></div><div class="shop-drop-grid">${[...S.skins].sort((a,b)=>a.rarity-b.rarity).map(s=>plateCard(sample(s),{preview:true})).join('')}</div></section>`;}
@@ -1083,7 +1139,7 @@
   function inspect(item){
     if(!item)return `<div class="shop-inspector classic-inspector"><div class="shop-inspect-art"><div class="classic-plate"></div></div><div class="shop-inspect-copy"><p class="shop-kicker">THE ORIGINAL</p><h3>House porcelain.</h3><p>The plate that started it all. Always in your collection.</p><button class="shop-secondary" data-shop-equip="classic" ${context.state.equipped===null?'disabled':''}>${context.state.equipped===null?'Currently equipped':'Equip plate'}</button></div></div>`;
     const skin=S.skin(item),r=S.rarity(item),isEquipped=context.state.equipped===item.uid;
-    return `<div class="shop-inspector" style="--rarity:${r.color}"><div class="shop-inspect-art">${art(item)}</div><div class="shop-inspect-copy"><p class="shop-rarity">${esc(r.name.toUpperCase())} / PLATE FINISH</p><h3>${esc(skin.name)}</h3><p class="shop-condition">${S.wear(item.float).name}<span>Pattern #${item.seed}</span></p>${patternDetail(item)}${floatMeter(item)}${saleValue(item)}<div class="shop-inspect-actions"><button class="shop-primary" data-shop-equip="${item.uid}" ${isEquipped?'disabled':''}>${isEquipped?'Currently equipped':'Equip plate'}</button>${saleControl(item)}</div></div></div>`;
+    return `<div class="shop-inspector" style="--rarity:${r.color}"><div class="shop-inspect-art">${art(item)}</div><div class="shop-inspect-copy"><p class="shop-rarity">${esc(r.name.toUpperCase())} / PLATE FINISH</p><h3>${esc(skin.name)}</h3><p class="shop-condition">${S.wear(item.float).name}</p>${floatMeter(item)}${saleValue(item)}<div class="shop-inspect-actions"><button class="shop-primary" data-shop-equip="${item.uid}" ${isEquipped?'disabled':''}>${isEquipped?'Currently equipped':'Equip plate'}</button>${saleControl(item)}</div></div></div>`;
   }
   function inventory(){
     let items=[...context.state.inventory];
@@ -1091,18 +1147,22 @@
     const selected=context.state.inventory.find(x=>x.uid===inspected);
     return `${inspect(selected)}<div class="shop-section-heading shop-inventory-heading"><h3>Your collection <span>${items.length+1}</span></h3><label>Sort<select id="shop-sort"><option value="newest" ${sort==='newest'?'selected':''}>Newest first</option><option value="rarity" ${sort==='rarity'?'selected':''}>Rarity</option><option value="float" ${sort==='float'?'selected':''}>Lowest float</option><option value="value" ${sort==='value'?'selected':''}>Sell value</option></select></label></div><div class="shop-drop-grid shop-inventory"><button class="shop-item shop-classic-card ${inspected===null?'is-inspected':''}" data-shop-inspect="classic" aria-pressed="${inspected===null}" style="--rarity:#89939b"><div class="shop-item-art"><div class="classic-plate"></div></div><span class="shop-item-kind">PLATE / ORIGINAL</span><strong>House porcelain</strong><span class="shop-item-wear">The original</span>${context.state.equipped===null?'<i class="shop-item-equipped">EQUIPPED</i>':''}</button>${items.map(item=>plateCard(item)).join('')}</div>${!items.length?'<div class="shop-empty"><p>Your first finish is still in a case.</p><button class="shop-secondary" data-shop-tab="cases">Browse cases</button></div>':''}`;
   }
+  function cracking(){
+    const c=box();
+    return `<div class="shop-opening shop-cracking"><p class="shop-kicker">${esc(c.name.toUpperCase())}</p><h3>Something good inside.</h3><div class="case-crack-scene" style="--case-color:${c.color}" aria-hidden="true"><div class="crack-halo"></div><div class="crack-briefcase"><div class="crack-base"><div class="crack-foam"><span>${art(sample(S.skins.find(s=>s.rarity===(c.id==='reserve'?4:c.id==='after-hours'?2:0))))}</span></div><b>LA BONNE BOUFFE</b></div><div class="crack-seam"></div><div class="crack-lid"><div class="crack-lid-outside"><i class="crack-handle"></i><span class="crack-brand">LBB<span>PLATE COLLECTION</span></span><i class="crack-latch latch-left"></i><i class="crack-latch latch-right"></i></div><div class="crack-lid-inside"><span>THE BACK ROOM</span></div></div></div><div class="crack-sparks"><i></i><i></i><i></i><i></i><i></i></div></div><p class="shop-opening-caption">A little something for your next service.</p><button class="shop-secondary" data-shop-action="reveal">Skip reveal</button></div>`;
+  }
   function opening(){
     const c=box(),items=Array.from({length:32},()=>S.draw(c.id));items[25]=prize;
     return `<div class="shop-opening"><p class="shop-kicker">${esc(c.name.toUpperCase())}</p><h3>Unboxing your plate.</h3><div class="case-reel"><i class="reel-pointer top"></i><div class="reel-window"><div class="reel-track">${items.map(item=>plateCard(item,{reel:true})).join('')}</div></div><i class="reel-pointer bottom"></i></div><p class="shop-opening-caption">Every finish has its own float and pattern.</p><button class="shop-secondary" data-shop-action="reveal">Skip reveal</button></div>`;
   }
-  function result(){const r=S.rarity(prize),skin=S.skin(prize);return `<div class="shop-result" style="--rarity:${r.color}"><p class="shop-kicker">ADDED TO YOUR INVENTORY</p><div class="shop-result-art">${art(prize)}</div><span class="shop-rarity">${esc(r.name.toUpperCase())}</span><h3>${esc(skin.name)}</h3><p class="shop-condition">${S.wear(prize.float).name}<span>Pattern #${prize.seed}</span></p>${patternDetail(prize)}${floatMeter(prize)}<div class="shop-result-actions"><button class="shop-primary" data-shop-action="equip-result">Equip plate</button><button class="shop-secondary" data-shop-action="keep">View in inventory</button></div><div class="shop-result-sale">${saleValue(prize)}${saleControl(prize)}</div><button class="shop-text" data-shop-action="cases">Back to cases</button></div>`;}
+  function result(){const r=S.rarity(prize),skin=S.skin(prize);return `<div class="shop-result" style="--rarity:${r.color}"><p class="shop-kicker">ADDED TO YOUR INVENTORY</p><div class="shop-result-art">${art(prize)}</div><span class="shop-rarity">${esc(r.name.toUpperCase())}</span><h3>${esc(skin.name)}</h3><p class="shop-condition">${S.wear(prize.float).name}</p>${floatMeter(prize)}<div class="shop-result-actions"><button class="shop-primary" data-shop-action="equip-result">Equip plate</button><button class="shop-secondary" data-shop-action="keep">View in inventory</button></div><div class="shop-result-sale">${saleValue(prize)}${saleControl(prize)}</div><button class="shop-text" data-shop-action="cases">Back to cases</button></div>`;}
   function render(){
     if(!active)return;
-    context.host.innerHTML=`<section class="plate-shop" aria-label="Plate collection">${header()}${lastSale?`<p class="shop-sale-notice" role="status">${esc(lastSale)}</p>`:''}<div class="shop-body">${stage==='opening'?opening():stage==='result'?result():tab==='cases'?browse():inventory()}</div><footer class="shop-footer"><span>YOUR KITCHEN. YOUR COLLECTION.</span><span>Plates change the look. Your study progress stays the same.</span></footer></section>`;
+    context.host.innerHTML=`<section class="plate-shop" aria-label="Plate collection">${header()}${lastSale?`<p class="shop-sale-notice" role="status">${esc(lastSale)}</p>`:''}<div class="shop-body">${stage==='cracking'?cracking():stage==='opening'?opening():stage==='result'?result():tab==='cases'?browse():inventory()}</div><footer class="shop-footer"><span>YOUR KITCHEN. YOUR COLLECTION.</span><span>Plates change the look. Your study progress stays the same.</span></footer></section>`;
   }
   function reveal(){
-    if(!active||stage!=='opening')return;
-    clearTimeout(timer);stopRoll();audio.stop();if(!document.hidden)audio.reveal(S.skin(prize).rarity);stage='result';render();
+    if(!active||!['cracking','opening'].includes(stage))return;
+    clearOpening();if(!document.hidden)audio.reveal(S.skin(prize).rarity);stage='result';render();
     $('[data-shop-action="equip-result"]')?.focus({preventScroll:true});
     announce(`${S.rarity(prize).name} plate: ${S.skin(prize).name}. ${S.wear(prize.float).name}. Float ${prize.float.toFixed(6)}. Added to inventory.`);
   }
@@ -1110,10 +1170,18 @@
     if(!active||stage!=='browse'||tab!=='cases')return;
     const transaction=S.open(context.state,selectedCase);
     if(!transaction.ok){announce(transaction.error);return;}
-    audio.setMuted(context.state.soundMuted);audio.open();
-    prize=transaction.item;save();stage='opening';pendingSale=null;lastSale='';const token=++generation;render();
+    audio.setMuted(context.state.soundMuted);
+    prize=transaction.item;save();stage='cracking';pendingSale=null;lastSale='';const token=++generation;render();
     const reduce=root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     if(reduce){reveal();return;}
+    audio.open();
+    crackTimer=setTimeout(()=>{if(active&&token===generation&&stage==='cracking'&&!document.hidden)audio.crack();},390);
+    timer=setTimeout(()=>beginReel(token),1450);
+    announce('Opening case. Your plate has been saved to your inventory.');
+  }
+  function beginReel(token){
+    if(!active||token!==generation||stage!=='cracking')return;
+    stage='opening';render();
     requestAnimationFrame(()=>requestAnimationFrame(()=>{
       if(!active||token!==generation||stage!=='opening')return;
       const rail=$('.reel-track'),window=$('.reel-window'),cell=$('.reel-item');
@@ -1124,8 +1192,8 @@
       watchRoll(token,rail,window,step);
       timer=setTimeout(()=>{if(token===generation)reveal();},4300);
     }));
-    announce('Opening case. Your plate has been saved to your inventory.');
   }
+  function clearOpening(){clearTimeout(timer);clearTimeout(crackTimer);timer=null;crackTimer=null;stopRoll();audio.stop();}
   function stopRoll(){cancelAnimationFrame(spinFrame);spinFrame=0;}
   function watchRoll(token,rail,viewport,step){
     stopRoll();let previous=-1;
@@ -1138,7 +1206,7 @@
     }
     spinFrame=requestAnimationFrame(frame);
   }
-  function dismiss(notify=true){if(!active)return;clearTimeout(timer);stopRoll();audio.stop();generation++;active=false;if(notify)context.onClose();}
+  function dismiss(notify=true){if(!active)return;clearOpening();generation++;active=false;if(notify)context.onClose();}
   function open(options){
     dismiss(false);context=options;active=true;tab='cases';stage='browse';prize=null;inspected=context.state.equipped;pendingSale=null;lastSale='';
     audio.setMuted(context.state.soundMuted);
@@ -1147,7 +1215,7 @@
   document.addEventListener('click',e=>{
     if(!active)return;
     const b=e.target.closest('button');if(!b||b.disabled)return;
-    if(b.dataset.shopTab){clearTimeout(timer);stopRoll();audio.stop();generation++;tab=b.dataset.shopTab;stage='browse';pendingSale=null;render();return;}
+    if(b.dataset.shopTab){clearOpening();generation++;tab=b.dataset.shopTab;stage='browse';pendingSale=null;render();return;}
     if(b.dataset.shopCase){selectedCase=b.dataset.shopCase;render();return;}
     if(b.dataset.shopInspect){inspected=b.dataset.shopInspect==='classic'?null:b.dataset.shopInspect;pendingSale=null;render();return;}
     if(b.dataset.shopRequestSell){
@@ -1178,7 +1246,7 @@
   });
   document.addEventListener('change',e=>{if(active&&e.target.id==='shop-sort'){sort=e.target.value;render();}});
   document.addEventListener('keydown',e=>{if(active&&e.key==='Escape'&&!document.querySelector('dialog[open]')){e.preventDefault();dismiss();}});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopRoll();audio.stop();}});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){if(active&&['cracking','opening'].includes(stage))reveal();else{stopRoll();audio.stop();}}});
   root.BOUFFE_PLATE_SHOP={open,dismiss,isOpen:()=>active,soundStatus:()=>audio.status()};
 })(globalThis);
 
@@ -1187,7 +1255,7 @@
 (() => {
   'use strict';
   const G = BOUFFE_GAME, E = BOUFFE_ENGINE, D = BOUFFE_DATA;
-  const S = BOUFFE_PLATES;
+  const S = BOUFFE_PLATES, R = BOUFFE_CAFE_REWARDS;
   const $ = s => document.querySelector(s), host = $('#order-up');
   if (!host) return;
   const escape = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1207,8 +1275,8 @@
   } catch { storage = false; }
   const money = n => '$' + n.toLocaleString('en-CA');
   const bestKey = () => `${saved.category}:${saved.direction}`;
-  const level = () => saved.totalTips >= 350 ? 3 : saved.totalTips >= 100 ? 2 : 1;
-  const levelName = () => ['Corner café', 'Neighbourhood favourite', 'House favourite'][level() - 1];
+  const rewards = () => R.progress(saved.totalTips);
+  const levelName = () => rewards().title;
   const icon = {
     bell: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17h16M6 17a6 6 0 0 1 12 0M12 7V5m-2 0h4M3 20h18"/></svg>',
     arrow: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-5-5 5 5-5 5"/></svg>',
@@ -1263,7 +1331,7 @@
   }
   function scene() {
     const finish=S.equipped(saved.cosmetics);
-    return `<div class="cafe-scene cafe-level-${level()}"><div class="scene-decoration" aria-hidden="true">
+    return `<div class="cafe-scene" data-cafe-rewards="${rewards().ids.join(' ')}"><div class="scene-decoration" aria-hidden="true">
       <div class="cafe-sign"><span>LA BONNE BOUFFE</span><strong>Order Up!</strong><span>OUVERT · OPEN</span></div>
       <div class="cafe-awning"></div><div class="cafe-window"><span></span><span></span><span></span></div>
       <div class="cafe-lamp lamp-one"></div><div class="cafe-lamp lamp-two"></div>
@@ -1273,14 +1341,24 @@
       <span class="scene-stamp" aria-hidden="true">FRENCH<br>ON THE MENU</span><div class="scene-caption" aria-hidden="true"><i></i>${escape(levelName())}</div></div>`;
   }
   function lobby() {
-    const nextLevel = level() === 1 ? 100 : 350;
+    const reward = rewards();
     return `<div class="game-lobby"><div class="game-welcome"><span class="game-eyebrow">THE RESTAURANT GAME</span><h2>Order Up<span>!</span></h2><p class="game-lede">Read the order.<br>Build the plate. Keep it moving.</p><p class="game-description">Serve the right food to earn up to $5 per order. Faster clean orders pay more; missed words come back for practice.</p>
       <div class="game-setup"><fieldset><legend>Your shift</legend><div class="game-segment"><button data-game-setting="timed" data-value="true" aria-pressed="${saved.timed}">2-minute rush</button><button data-game-setting="timed" data-value="false" aria-pressed="${!saved.timed}">No pressure</button></div></fieldset>
       <div class="game-setup-row"><label>Orders in<select id="game-direction"><option value="fr-en" ${saved.direction === 'fr-en' ? 'selected' : ''}>French → English</option><option value="en-fr" ${saved.direction === 'en-fr' ? 'selected' : ''}>English → French</option></select></label><label>On the menu<select id="game-category"><option value="all">All food & drink</option>${D.categories.filter(c => G.foodTopics.includes(c.id)).map(c => `<option value="${c.id}" ${saved.category === c.id ? 'selected' : ''}>${escape(c.en)}</option>`).join('')}</select></label></div></div>
       <button class="game-primary game-start" data-game-action="start">${icon.bell}Open the kitchen${icon.arrow}</button><p class="game-start-note">${saved.timed ? 'Two minutes of service. Pauses whenever you need.' : 'No clock or patience meter. Finish whenever you like.'}</p></div>
-      <div class="game-lobby-art">${scene()}<div class="cafe-profile"><div><span class="game-eyebrow">YOUR CAFÉ</span><strong>${escape(levelName())}</strong></div><div class="cafe-tips"><strong>${money(saved.totalTips)}</strong><span>lifetime tips</span></div></div><div class="cafe-upgrade"><span>${level() === 3 ? 'Your café is fully decorated.' : `${money(Math.max(0, nextLevel - saved.totalTips))} in tips until ${level() === 1 ? 'fresh plants & warm lights' : 'your house-favourite sign'}.`}</span><div><i style="width:${level() === 3 ? 100 : Math.min(100, saved.totalTips / nextLevel * 100)}%"></i></div></div></div></div>
+      <div class="game-lobby-art">${scene()}<div class="cafe-profile"><div><span class="game-eyebrow">YOUR CAFÉ</span><strong>${escape(levelName())}</strong></div><div class="cafe-tips"><strong>${money(saved.totalTips)}</strong><span>lifetime tips</span></div></div><div class="cafe-upgrade"><span>${reward.next ? `${money(reward.remaining)} in lifetime tips until ${escape(reward.next.name.toLowerCase())}.` : 'Your signature café is fully decorated.'}</span><div><i style="width:${reward.percent}%"></i></div></div>${rewardList(reward)}</div></div>
       <div class="game-how"><div><span>01</span><p><strong>Read the ticket.</strong> Orders use your classroom vocabulary.</p></div><div><span>02</span><p><strong>Pick, then serve.</strong> Tap ingredients and ring the bell.</p></div><div><span>03</span><p><strong>Keep the kitchen stocked.</strong> Every fourth ticket is a typing challenge.</p></div></div>
       <div class="game-lobby-foot"><span>${storage ? 'Personal bests and café upgrades save on this device.' : 'Storage is unavailable. You can still play this visit.'}</span><span>${saved.timed ? `Personal best · ${bestScore().toLocaleString()} pts` : 'Untimed practice · no score to beat'}</span></div>`;
+  }
+  function rewardList(reward) {
+    return `<details class="cafe-rewards"><summary><span>Café rewards</span><span>${reward.unlocked.length} / ${R.milestones.length} unlocked</span></summary><p>Earn lifetime tips to decorate your table during service.</p><ol>${R.milestones.map(m => `<li class="${reward.total >= m.tips ? 'is-unlocked' : ''}"><span class="reward-check" aria-label="${reward.total >= m.tips ? 'Unlocked' : 'Locked'}">${reward.total >= m.tips ? '✓' : '○'}</span><span>${escape(m.name)}</span><strong>${money(m.tips)}</strong></li>`).join('')}</ol></details>`;
+  }
+  function tableDecorations() {
+    const ids=rewards().ids,has=id=>ids.includes(id);
+    return {attributes:ids.join(' '),
+      overhead:`<div class="table-overhead" aria-hidden="true">${has('lights')?'<i class="table-pendant"></i>':''}${has('fairy-lights')?`<div class="table-fairy-lights">${Array.from({length:9},()=>'<i></i>').join('')}</div>`:''}</div>`,
+      left:`<div class="table-decor table-decor-left" aria-hidden="true">${has('vine')?`<span class="table-vine">${R.art('vine')}</span>`:''}${has('plants')?`<span class="table-plant">${R.art('plants')}</span>`:''}${has('candle')?`<span class="table-candle">${R.art('candle')}</span>`:''}</div>`,
+      right:`<div class="table-decor table-decor-right" aria-hidden="true">${has('flowers')?`<span class="table-flowers">${R.art(has('signature')?'signature':'flowers')}</span>`:''}${has('utensils')?`<span class="table-utensils">${R.art(has('gold')?'gold':'utensils')}</span>`:''}</div>`};
   }
   function clock() { const n = Math.ceil(shift.remaining / 1000); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; }
   function metrics() {
@@ -1294,9 +1372,9 @@
       <div class="ticket-total"><span>${restock ? 'STOCK REQUEST' : 'ITEMS TO PLATE'}</span><strong>${o.ids.length}</strong></div>${shift.timed ? `<div class="patience-label"><span>Table patience</span><span id="patience-text">${Math.ceil(o.patience / 1000)}s</span></div><div class="patience-track"><i id="patience-fill" style="width:${o.patience / o.maxPatience * 100}%"></i></div>` : '<p class="ticket-patient">Take your time. The table can wait.</p>'}<div class="ticket-barcode"></div><small class="ticket-thanks">BON APPÉTIT · THANK YOU</small></aside>`;
   }
   function plate() {
-    const o = shift.order, selected = shift.selected;
+    const o = shift.order, selected = shift.selected, decor = tableDecorations();
     const finish=S.equipped(saved.cosmetics);
-    return `<div class="plating-area"><div class="plating-heading"><span class="game-eyebrow">THE PASS</span><span>${selected.length} / ${o.ids.length} ${o.ids.length === 1 ? 'item' : 'items'}</span></div><div class="game-plate ${selected.length ? 'has-food' : ''} ${finish?'has-skin':''}">${finish?S.art(finish,'game-equipped'):''}${selected.length ? selected.map(id => `<button class="plated-food" data-game-pick="${id}" aria-label="Remove ${escape(short(id, o.target))}"><span aria-hidden="true">${food(id)}</span><small lang="${o.target}">${escape(short(id, o.target))}</small></button>`).join('') : `<div class="empty-plate">${icon.bell}<span>Your plate is waiting.</span><small>Choose ingredients below.</small></div>`}</div><div class="game-service-actions"><button class="game-text-button" data-game-action="hint">${o.hint ? 'Translations shown below' : 'Need a translation?'}</button><button class="game-primary" data-game-action="serve" ${selected.length ? '' : 'disabled'}>${icon.bell}Serve order<span class="game-key">↵</span></button></div>${o.hint ? `<div class="game-hint">${translations(o.ids)}<p>This order stays in your review collection.</p></div>` : ''}</div>
+    return `<div class="plating-area"><div class="plating-heading"><span class="game-eyebrow">THE PASS</span><span>${selected.length} / ${o.ids.length} ${o.ids.length === 1 ? 'item' : 'items'}</span></div><div class="table-setting" data-cafe-rewards="${decor.attributes}">${decor.overhead}${decor.left}<div class="game-plate ${selected.length ? 'has-food' : ''} ${finish?'has-skin':''}">${finish?S.art(finish,'game-equipped'):''}${selected.length ? selected.map(id => `<button class="plated-food" data-game-pick="${id}" aria-label="Remove ${escape(short(id, o.target))}"><span aria-hidden="true">${food(id)}</span><small lang="${o.target}">${escape(short(id, o.target))}</small></button>`).join('') : `<div class="empty-plate">${icon.bell}<span>Your plate is waiting.</span><small>Choose ingredients below.</small></div>`}</div>${decor.right}</div><div class="game-service-actions"><button class="game-text-button" data-game-action="hint">${o.hint ? 'Translations shown below' : 'Need a translation?'}</button><button class="game-primary" data-game-action="serve" ${selected.length ? '' : 'disabled'}>${icon.bell}Serve order<span class="game-key">↵</span></button></div>${o.hint ? `<div class="game-hint">${translations(o.ids)}<p>This order stays in your review collection.</p></div>` : ''}</div>
       <div class="ingredient-heading"><h3>Your ingredients</h3><span>Select to plate · Select again to remove</span></div><div class="ingredient-grid">${o.choices.map((id, i) => `<button class="ingredient ${selected.includes(id) ? 'is-plated' : ''}" data-game-pick="${id}" aria-pressed="${selected.includes(id)}"><span class="ingredient-number" aria-hidden="true">${i + 1}</span><span class="ingredient-art" aria-hidden="true">${food(id)}</span><span class="ingredient-name" lang="${o.target}">${escape(short(id, o.target))}</span><span class="ingredient-check" aria-hidden="true">${selected.includes(id) ? '✓' : '+'}</span></button>`).join('')}</div>`;
   }
   function restock() {

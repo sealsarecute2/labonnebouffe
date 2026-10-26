@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const G = BOUFFE_GAME, E = BOUFFE_ENGINE, D = BOUFFE_DATA;
-  const S = BOUFFE_PLATES;
+  const S = BOUFFE_PLATES, R = BOUFFE_CAFE_REWARDS;
   const $ = s => document.querySelector(s), host = $('#order-up');
   if (!host) return;
   const escape = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -22,8 +22,8 @@
   } catch { storage = false; }
   const money = n => '$' + n.toLocaleString('en-CA');
   const bestKey = () => `${saved.category}:${saved.direction}`;
-  const level = () => saved.totalTips >= 350 ? 3 : saved.totalTips >= 100 ? 2 : 1;
-  const levelName = () => ['Corner café', 'Neighbourhood favourite', 'House favourite'][level() - 1];
+  const rewards = () => R.progress(saved.totalTips);
+  const levelName = () => rewards().title;
   const icon = {
     bell: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17h16M6 17a6 6 0 0 1 12 0M12 7V5m-2 0h4M3 20h18"/></svg>',
     arrow: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15m-5-5 5 5-5 5"/></svg>',
@@ -78,7 +78,7 @@
   }
   function scene() {
     const finish=S.equipped(saved.cosmetics);
-    return `<div class="cafe-scene cafe-level-${level()}"><div class="scene-decoration" aria-hidden="true">
+    return `<div class="cafe-scene" data-cafe-rewards="${rewards().ids.join(' ')}"><div class="scene-decoration" aria-hidden="true">
       <div class="cafe-sign"><span>LA BONNE BOUFFE</span><strong>Order Up!</strong><span>OUVERT · OPEN</span></div>
       <div class="cafe-awning"></div><div class="cafe-window"><span></span><span></span><span></span></div>
       <div class="cafe-lamp lamp-one"></div><div class="cafe-lamp lamp-two"></div>
@@ -88,14 +88,24 @@
       <span class="scene-stamp" aria-hidden="true">FRENCH<br>ON THE MENU</span><div class="scene-caption" aria-hidden="true"><i></i>${escape(levelName())}</div></div>`;
   }
   function lobby() {
-    const nextLevel = level() === 1 ? 100 : 350;
+    const reward = rewards();
     return `<div class="game-lobby"><div class="game-welcome"><span class="game-eyebrow">THE RESTAURANT GAME</span><h2>Order Up<span>!</span></h2><p class="game-lede">Read the order.<br>Build the plate. Keep it moving.</p><p class="game-description">Serve the right food to earn up to $5 per order. Faster clean orders pay more; missed words come back for practice.</p>
       <div class="game-setup"><fieldset><legend>Your shift</legend><div class="game-segment"><button data-game-setting="timed" data-value="true" aria-pressed="${saved.timed}">2-minute rush</button><button data-game-setting="timed" data-value="false" aria-pressed="${!saved.timed}">No pressure</button></div></fieldset>
       <div class="game-setup-row"><label>Orders in<select id="game-direction"><option value="fr-en" ${saved.direction === 'fr-en' ? 'selected' : ''}>French → English</option><option value="en-fr" ${saved.direction === 'en-fr' ? 'selected' : ''}>English → French</option></select></label><label>On the menu<select id="game-category"><option value="all">All food & drink</option>${D.categories.filter(c => G.foodTopics.includes(c.id)).map(c => `<option value="${c.id}" ${saved.category === c.id ? 'selected' : ''}>${escape(c.en)}</option>`).join('')}</select></label></div></div>
       <button class="game-primary game-start" data-game-action="start">${icon.bell}Open the kitchen${icon.arrow}</button><p class="game-start-note">${saved.timed ? 'Two minutes of service. Pauses whenever you need.' : 'No clock or patience meter. Finish whenever you like.'}</p></div>
-      <div class="game-lobby-art">${scene()}<div class="cafe-profile"><div><span class="game-eyebrow">YOUR CAFÉ</span><strong>${escape(levelName())}</strong></div><div class="cafe-tips"><strong>${money(saved.totalTips)}</strong><span>lifetime tips</span></div></div><div class="cafe-upgrade"><span>${level() === 3 ? 'Your café is fully decorated.' : `${money(Math.max(0, nextLevel - saved.totalTips))} in tips until ${level() === 1 ? 'fresh plants & warm lights' : 'your house-favourite sign'}.`}</span><div><i style="width:${level() === 3 ? 100 : Math.min(100, saved.totalTips / nextLevel * 100)}%"></i></div></div></div></div>
+      <div class="game-lobby-art">${scene()}<div class="cafe-profile"><div><span class="game-eyebrow">YOUR CAFÉ</span><strong>${escape(levelName())}</strong></div><div class="cafe-tips"><strong>${money(saved.totalTips)}</strong><span>lifetime tips</span></div></div><div class="cafe-upgrade"><span>${reward.next ? `${money(reward.remaining)} in lifetime tips until ${escape(reward.next.name.toLowerCase())}.` : 'Your signature café is fully decorated.'}</span><div><i style="width:${reward.percent}%"></i></div></div>${rewardList(reward)}</div></div>
       <div class="game-how"><div><span>01</span><p><strong>Read the ticket.</strong> Orders use your classroom vocabulary.</p></div><div><span>02</span><p><strong>Pick, then serve.</strong> Tap ingredients and ring the bell.</p></div><div><span>03</span><p><strong>Keep the kitchen stocked.</strong> Every fourth ticket is a typing challenge.</p></div></div>
       <div class="game-lobby-foot"><span>${storage ? 'Personal bests and café upgrades save on this device.' : 'Storage is unavailable. You can still play this visit.'}</span><span>${saved.timed ? `Personal best · ${bestScore().toLocaleString()} pts` : 'Untimed practice · no score to beat'}</span></div>`;
+  }
+  function rewardList(reward) {
+    return `<details class="cafe-rewards"><summary><span>Café rewards</span><span>${reward.unlocked.length} / ${R.milestones.length} unlocked</span></summary><p>Earn lifetime tips to decorate your table during service.</p><ol>${R.milestones.map(m => `<li class="${reward.total >= m.tips ? 'is-unlocked' : ''}"><span class="reward-check" aria-label="${reward.total >= m.tips ? 'Unlocked' : 'Locked'}">${reward.total >= m.tips ? '✓' : '○'}</span><span>${escape(m.name)}</span><strong>${money(m.tips)}</strong></li>`).join('')}</ol></details>`;
+  }
+  function tableDecorations() {
+    const ids=rewards().ids,has=id=>ids.includes(id);
+    return {attributes:ids.join(' '),
+      overhead:`<div class="table-overhead" aria-hidden="true">${has('lights')?'<i class="table-pendant"></i>':''}${has('fairy-lights')?`<div class="table-fairy-lights">${Array.from({length:9},()=>'<i></i>').join('')}</div>`:''}</div>`,
+      left:`<div class="table-decor table-decor-left" aria-hidden="true">${has('vine')?`<span class="table-vine">${R.art('vine')}</span>`:''}${has('plants')?`<span class="table-plant">${R.art('plants')}</span>`:''}${has('candle')?`<span class="table-candle">${R.art('candle')}</span>`:''}</div>`,
+      right:`<div class="table-decor table-decor-right" aria-hidden="true">${has('flowers')?`<span class="table-flowers">${R.art(has('signature')?'signature':'flowers')}</span>`:''}${has('utensils')?`<span class="table-utensils">${R.art(has('gold')?'gold':'utensils')}</span>`:''}</div>`};
   }
   function clock() { const n = Math.ceil(shift.remaining / 1000); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; }
   function metrics() {
@@ -109,9 +119,9 @@
       <div class="ticket-total"><span>${restock ? 'STOCK REQUEST' : 'ITEMS TO PLATE'}</span><strong>${o.ids.length}</strong></div>${shift.timed ? `<div class="patience-label"><span>Table patience</span><span id="patience-text">${Math.ceil(o.patience / 1000)}s</span></div><div class="patience-track"><i id="patience-fill" style="width:${o.patience / o.maxPatience * 100}%"></i></div>` : '<p class="ticket-patient">Take your time. The table can wait.</p>'}<div class="ticket-barcode"></div><small class="ticket-thanks">BON APPÉTIT · THANK YOU</small></aside>`;
   }
   function plate() {
-    const o = shift.order, selected = shift.selected;
+    const o = shift.order, selected = shift.selected, decor = tableDecorations();
     const finish=S.equipped(saved.cosmetics);
-    return `<div class="plating-area"><div class="plating-heading"><span class="game-eyebrow">THE PASS</span><span>${selected.length} / ${o.ids.length} ${o.ids.length === 1 ? 'item' : 'items'}</span></div><div class="game-plate ${selected.length ? 'has-food' : ''} ${finish?'has-skin':''}">${finish?S.art(finish,'game-equipped'):''}${selected.length ? selected.map(id => `<button class="plated-food" data-game-pick="${id}" aria-label="Remove ${escape(short(id, o.target))}"><span aria-hidden="true">${food(id)}</span><small lang="${o.target}">${escape(short(id, o.target))}</small></button>`).join('') : `<div class="empty-plate">${icon.bell}<span>Your plate is waiting.</span><small>Choose ingredients below.</small></div>`}</div><div class="game-service-actions"><button class="game-text-button" data-game-action="hint">${o.hint ? 'Translations shown below' : 'Need a translation?'}</button><button class="game-primary" data-game-action="serve" ${selected.length ? '' : 'disabled'}>${icon.bell}Serve order<span class="game-key">↵</span></button></div>${o.hint ? `<div class="game-hint">${translations(o.ids)}<p>This order stays in your review collection.</p></div>` : ''}</div>
+    return `<div class="plating-area"><div class="plating-heading"><span class="game-eyebrow">THE PASS</span><span>${selected.length} / ${o.ids.length} ${o.ids.length === 1 ? 'item' : 'items'}</span></div><div class="table-setting" data-cafe-rewards="${decor.attributes}">${decor.overhead}${decor.left}<div class="game-plate ${selected.length ? 'has-food' : ''} ${finish?'has-skin':''}">${finish?S.art(finish,'game-equipped'):''}${selected.length ? selected.map(id => `<button class="plated-food" data-game-pick="${id}" aria-label="Remove ${escape(short(id, o.target))}"><span aria-hidden="true">${food(id)}</span><small lang="${o.target}">${escape(short(id, o.target))}</small></button>`).join('') : `<div class="empty-plate">${icon.bell}<span>Your plate is waiting.</span><small>Choose ingredients below.</small></div>`}</div>${decor.right}</div><div class="game-service-actions"><button class="game-text-button" data-game-action="hint">${o.hint ? 'Translations shown below' : 'Need a translation?'}</button><button class="game-primary" data-game-action="serve" ${selected.length ? '' : 'disabled'}>${icon.bell}Serve order<span class="game-key">↵</span></button></div>${o.hint ? `<div class="game-hint">${translations(o.ids)}<p>This order stays in your review collection.</p></div>` : ''}</div>
       <div class="ingredient-heading"><h3>Your ingredients</h3><span>Select to plate · Select again to remove</span></div><div class="ingredient-grid">${o.choices.map((id, i) => `<button class="ingredient ${selected.includes(id) ? 'is-plated' : ''}" data-game-pick="${id}" aria-pressed="${selected.includes(id)}"><span class="ingredient-number" aria-hidden="true">${i + 1}</span><span class="ingredient-art" aria-hidden="true">${food(id)}</span><span class="ingredient-name" lang="${o.target}">${escape(short(id, o.target))}</span><span class="ingredient-check" aria-hidden="true">${selected.includes(id) ? '✓' : '+'}</span></button>`).join('')}</div>`;
   }
   function restock() {

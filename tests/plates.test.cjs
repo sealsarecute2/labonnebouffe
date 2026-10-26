@@ -84,7 +84,7 @@ test('selling a fully worn item pays the one-tip minimum and preserves another e
   P.equip(s,b.uid);const r=P.sell(s,a.uid);
   assert.equal(r.ok,true);assert.equal(r.price,1);assert.equal(s.balance,1);assert.equal(s.equipped,b.uid);assert.equal(s.inventory.length,1);
 });
-test('Blue Gem is Covert and seed-dependent coverage is stable independently of float',()=>{
+test('Case Hardened is Covert and seed-dependent coverage is stable independently of float',()=>{
   assert.equal(P.rarity({skin:'blue-gem'}).rank,3);
   const a={skin:'blue-gem',seed:661,float:.01},b={...a,float:.99};
   assert.equal(P.patternInfo(a).coverage,99);

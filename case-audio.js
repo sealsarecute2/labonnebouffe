@@ -3,7 +3,7 @@
   'use strict';
   function create(options={}){
     let context=null,master=null,muted=false,noiseBuffer=null;
-    const sources=new Set(),counts={open:0,tick:0,reveal:0};
+    const sources=new Set(),counts={open:0,crack:0,tick:0,reveal:0};
     function unlock(){
       if(muted)return false;
       try{
@@ -52,6 +52,13 @@
       tone(230,t+.04,.11,.1,'triangle',125);noise(t+.12,.12,.16,2400,'highpass');
       tone(980,t+.13,.13,.055,'sine',720);
     });}
+    function crack(delay=0){return perform('crack',now=>{
+      const t=now+delay;
+      // Seal snaps, then the heavy lid creaks back on its hinges.
+      noise(t,.07,.24,3100,'highpass');tone(130,t,.15,.18,'triangle',48);
+      noise(t+.05,.3,.11,650);tone(340,t+.06,.3,.035,'sawtooth',105);
+      noise(t+.31,.06,.12,1800);tone(74,t+.33,.2,.14,'sine',35);
+    });}
     function tick(progress=0,delay=0){return perform('tick',now=>{
       const t=now+delay,p=Math.min(1,Math.max(0,progress));
       noise(t,.016,.17-p*.035,2200-p*600,'highpass');
@@ -74,7 +81,7 @@
       if(master&&context.state!=='closed')master.gain.setTargetAtTime(muted?0:.22,context.currentTime,.008);
     }
     function status(){return {created:!!context,state:context?.state||'uninitialized',muted,active:sources.size,counts:{...counts}};}
-    return {unlock,open,tick,reveal,stop,setMuted,status};
+    return {unlock,open,crack,tick,reveal,stop,setMuted,status};
   }
   root.BOUFFE_CASE_AUDIO={create};
   if(typeof module!=='undefined')module.exports={create};
