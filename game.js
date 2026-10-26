@@ -2,11 +2,12 @@
 (() => {
   'use strict';
   const G = BOUFFE_GAME, E = BOUFFE_ENGINE, D = BOUFFE_DATA;
+  const S = BOUFFE_PLATES;
   const $ = s => document.querySelector(s), host = $('#order-up');
   if (!host) return;
   const escape = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const KEY = 'bonne-bouffe.order-up.v1';
-  const fresh = () => ({ version: 1, best: {}, totalTips: 0, shifts: 0, timed: true, direction: 'fr-en', category: 'all' });
+  const fresh = () => ({ version: 1, best: {}, totalTips: 0, shifts: 0, timed: true, direction: 'fr-en', category: 'all', cosmetics:S.fresh() });
   let saved = fresh(), storage = true, shift = null, view = 'study', delivered = 0, typed = '', committed = false;
   let previousTime = 0, announcement = '', lastSecond = -1;
   try {
@@ -16,6 +17,7 @@
         category: G.foodTopics.includes(value.category) ? value.category : 'all',
         totalTips: Math.max(0, Number(value.totalTips) || 0), shifts: Math.max(0, Number(value.shifts) || 0), best: {} };
       for (const [key, score] of Object.entries(value.best || {})) if (Number.isFinite(score) && score >= 0) saved.best[key] = score;
+      saved.cosmetics=S.restore(value.cosmetics,saved.totalTips);
     }
   } catch { storage = false; }
   const money = n => '$' + n.toLocaleString('en-CA');
@@ -56,6 +58,7 @@
   }
   function bestScore() { return saved.best[bestKey()] || 0; }
   function changeView(next, focus = false) {
+    rootShopDismiss();
     view = next;
     document.documentElement.dataset.view = next;
     host.hidden = next !== 'game';
@@ -74,14 +77,15 @@
     }
   }
   function scene() {
-    return `<div class="cafe-scene cafe-level-${level()}" aria-hidden="true">
+    const finish=S.equipped(saved.cosmetics);
+    return `<div class="cafe-scene cafe-level-${level()}"><div class="scene-decoration" aria-hidden="true">
       <div class="cafe-sign"><span>LA BONNE BOUFFE</span><strong>Order Up!</strong><span>OUVERT · OPEN</span></div>
       <div class="cafe-awning"></div><div class="cafe-window"><span></span><span></span><span></span></div>
       <div class="cafe-lamp lamp-one"></div><div class="cafe-lamp lamp-two"></div>
       <div class="cafe-plant"><i></i><i></i><i></i><b></b></div>
       <div class="scene-ticket"><span>TABLE 04</span><strong>La commande</strong><p>le poulet<br>le riz<br>le jus</p><div class="ticket-barcode"></div><small>MERCI BEAUCOUP</small></div>
-      <div class="scene-counter"></div><div class="scene-plate"><span>🍗</span><span>🍚</span></div><div class="scene-drink">🧃</div>
-      <span class="scene-stamp">FRENCH<br>ON THE MENU</span><div class="scene-caption"><i></i>${escape(levelName())}</div></div>`;
+      <div class="scene-counter"></div></div><button type="button" id="cafe-secret-plate" class="scene-plate ${finish?'has-skin':''}" data-game-action="shop" aria-label="Open plate collection">${finish?S.art(finish,'cafe-equipped'):''}<span aria-hidden="true">🍗</span><span aria-hidden="true">🍚</span></button><div class="scene-drink" aria-hidden="true">🧃</div>
+      <span class="scene-stamp" aria-hidden="true">FRENCH<br>ON THE MENU</span><div class="scene-caption" aria-hidden="true"><i></i>${escape(levelName())}</div></div>`;
   }
   function lobby() {
     const nextLevel = level() === 1 ? 100 : 350;
@@ -106,7 +110,8 @@
   }
   function plate() {
     const o = shift.order, selected = shift.selected;
-    return `<div class="plating-area"><div class="plating-heading"><span class="game-eyebrow">THE PASS</span><span>${selected.length} / ${o.ids.length} ${o.ids.length === 1 ? 'item' : 'items'}</span></div><div class="game-plate ${selected.length ? 'has-food' : ''}">${selected.length ? selected.map(id => `<button class="plated-food" data-game-pick="${id}" aria-label="Remove ${escape(short(id, o.target))}"><span aria-hidden="true">${food(id)}</span><small lang="${o.target}">${escape(short(id, o.target))}</small></button>`).join('') : `<div class="empty-plate">${icon.bell}<span>Your plate is waiting.</span><small>Choose ingredients below.</small></div>`}</div><div class="game-service-actions"><button class="game-text-button" data-game-action="hint">${o.hint ? 'Translations shown below' : 'Need a translation?'}</button><button class="game-primary" data-game-action="serve" ${selected.length ? '' : 'disabled'}>${icon.bell}Serve order<span class="game-key">↵</span></button></div>${o.hint ? `<div class="game-hint">${translations(o.ids)}<p>This order stays in your review collection.</p></div>` : ''}</div>
+    const finish=S.equipped(saved.cosmetics);
+    return `<div class="plating-area"><div class="plating-heading"><span class="game-eyebrow">THE PASS</span><span>${selected.length} / ${o.ids.length} ${o.ids.length === 1 ? 'item' : 'items'}</span></div><div class="game-plate ${selected.length ? 'has-food' : ''} ${finish?'has-skin':''}">${finish?S.art(finish,'game-equipped'):''}${selected.length ? selected.map(id => `<button class="plated-food" data-game-pick="${id}" aria-label="Remove ${escape(short(id, o.target))}"><span aria-hidden="true">${food(id)}</span><small lang="${o.target}">${escape(short(id, o.target))}</small></button>`).join('') : `<div class="empty-plate">${icon.bell}<span>Your plate is waiting.</span><small>Choose ingredients below.</small></div>`}</div><div class="game-service-actions"><button class="game-text-button" data-game-action="hint">${o.hint ? 'Translations shown below' : 'Need a translation?'}</button><button class="game-primary" data-game-action="serve" ${selected.length ? '' : 'disabled'}>${icon.bell}Serve order<span class="game-key">↵</span></button></div>${o.hint ? `<div class="game-hint">${translations(o.ids)}<p>This order stays in your review collection.</p></div>` : ''}</div>
       <div class="ingredient-heading"><h3>Your ingredients</h3><span>Select to plate · Select again to remove</span></div><div class="ingredient-grid">${o.choices.map((id, i) => `<button class="ingredient ${selected.includes(id) ? 'is-plated' : ''}" data-game-pick="${id}" aria-pressed="${selected.includes(id)}"><span class="ingredient-number" aria-hidden="true">${i + 1}</span><span class="ingredient-art" aria-hidden="true">${food(id)}</span><span class="ingredient-name" lang="${o.target}">${escape(short(id, o.target))}</span><span class="ingredient-check" aria-hidden="true">${selected.includes(id) ? '✓' : '+'}</span></button>`).join('')}</div>`;
   }
   function restock() {
@@ -146,6 +151,7 @@
     G.finish(shift); deliver();
     const r = G.summary(shift);
     saved.totalTips += r.tips; saved.shifts++;
+    saved.cosmetics.balance+=r.tips;
     shift.newBest = shift.timed && r.score > bestScore();
     if (shift.timed) saved.best[bestKey()] = Math.max(bestScore(), r.score);
     persist(); committed = true; render(); host.focus({ preventScroll: true });
@@ -162,6 +168,7 @@
     say(shift.phase === 'correction' ? 'Check the translations, then try this order again. The clock is paused.' : 'Order served. The clock is paused until your next ticket.');
   }
   const actions = {
+    shop:()=>{if(shift)return;BOUFFE_PLATE_SHOP.open({host,state:saved.cosmetics,onChange:persist,onClose:()=>{render();$('#cafe-secret-plate')?.focus({preventScroll:true});}});},
     start, serve,
     next: () => { if (shift?.phase !== 'feedback') return; G.next(shift); typed = ''; render(true); say(`Ticket ${shift.number}. ${shift.order.kind === 'restock' ? 'Restock: type the translation.' : 'Select the ingredients on the ticket.'}`); },
     retry: () => { if (shift?.phase !== 'correction') return; G.retry(shift); typed = ''; render(true); say('Try the ticket again.'); },
@@ -215,7 +222,8 @@
   document.addEventListener('visibilitychange', () => { if (document.hidden) suspend(); previousTime = performance.now(); });
   window.addEventListener('blur', suspend);
   window.addEventListener('hashchange', () => { if (location.hash === '#order-up') changeView('game'); });
-  document.addEventListener('bouffe:reset', () => { saved = fresh(); persist(); shift = null; render(); });
+  document.addEventListener('bouffe:reset', () => { rootShopDismiss();saved = fresh(); persist(); shift = null; render(); });
+  function rootShopDismiss(){if(globalThis.BOUFFE_PLATE_SHOP?.isOpen())BOUFFE_PLATE_SHOP.dismiss(false);}
   function frame(now) {
     const delta = previousTime ? now - previousTime : 0; previousTime = now;
     if (view === 'game' && shift?.phase === 'active' && !shift.paused && !document.querySelector('dialog[open]')) {
